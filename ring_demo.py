@@ -33,80 +33,6 @@ avg = 0
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
                  kpsh=False, valley=False, show=False, ax=None):
 
-    """Detect peaks in data based on their amplitude and other features.
-
-    Parameters
-    ----------
-    x : 1D array_like
-        data.
-    mph : {None, number}, optional (default = None)
-        detect peaks that are greater than minimum peak height.
-    mpd : positive integer, optional (default = 1)
-        detect peaks that are at least separated by minimum peak distance (in
-        number of data).
-    threshold : positive number, optional (default = 0)
-        detect peaks (valleys) that are greater (smaller) than `threshold`
-        in relation to their immediate neighbors.
-    edge : {None, 'rising', 'falling', 'both'}, optional (default = 'rising')
-        for a flat peak, keep only the rising edge ('rising'), only the
-        falling edge ('falling'), both edges ('both'), or don't detect a
-        flat peak (None).
-    kpsh : bool, optional (default = False)
-        keep peaks with same height even if they are closer than `mpd`.
-    valley : bool, optional (default = False)
-        if True (1), detect valleys (local minima) instead of peaks.
-    show : bool, optional (default = False)
-        if True (1), plot data in matplotlib figure.
-    ax : a matplotlib.axes.Axes instance, optional (default = None).
-
-    Returns
-    -------
-    ind : 1D array_like
-        indeces of the peaks in `x`.
-
-    Notes
-    -----
-    The detection of valleys instead of peaks is performed internally by simply
-    negating the data: `ind_valleys = detect_peaks(-x)`
-    
-    The function can handle NaN's 
-
-    See this IPython Notebook [1]_.
-
-    References
-    ----------
-    .. [1] http://nbviewer.ipython.org/github/demotu/BMC/blob/master/notebooks/DetectPeaks.ipynb
-
-    Examples
-    --------
-    >>> from detect_peaks import detect_peaks
-    >>> x = np.random.randn(100)
-    >>> x[60:81] = np.nan
-    >>> # detect all peaks and plot data
-    >>> ind = detect_peaks(x, show=True)
-    >>> print(ind)
-
-    >>> x = np.sin(2*np.pi*5*np.linspace(0, 1, 200)) + np.random.randn(200)/5
-    >>> # set minimum peak height = 0 and minimum peak distance = 20
-    >>> detect_peaks(x, mph=0, mpd=20, show=True)
-
-    >>> x = [0, 1, 0, 2, 0, 3, 0, 2, 0, 1, 0]
-    >>> # set minimum peak distance = 2
-    >>> detect_peaks(x, mpd=2, show=True)
-
-    >>> x = np.sin(2*np.pi*5*np.linspace(0, 1, 200)) + np.random.randn(200)/5
-    >>> # detection of valleys instead of peaks
-    >>> detect_peaks(x, mph=0, mpd=20, valley=True, show=True)
-
-    >>> x = [0, 1, 1, 0, 1, 1, 0]
-    >>> # detect both edges
-    >>> detect_peaks(x, edge='both', show=True)
-
-    >>> x = [-2, 1, -2, 2, 1, 1, 3, 0]
-    >>> # set threshold = 2
-    >>> detect_peaks(x, threshold = 2, show=True)
-    """
-
     x = np.atleast_1d(x).astype('float64')
     if x.size < 3:
         return np.array([], dtype=int)
@@ -173,9 +99,29 @@ valley_x = []
 valley_y = []
 topanddown = 1
 
+temp_peak = 0
+temp_valley = 0
+
+base_angle = 0
+temp_angle = 0
+total_angle = 0
+
+firstTopOrBottom = True
+goingup = True
+goingflat = False
+
 def AddValue(val):
     global avg
     global topanddown
+
+    global base_angle
+    global temp_angle
+    global firstTopOrBottom
+    global temp_peak
+    global temp_valley
+    global total_angle
+    global goingup
+    global goingflat
 
     ch0_buf.append(val)
     ch0_buf.popleft()
@@ -183,6 +129,8 @@ def AddValue(val):
     avg = avg + 0.1*(val-avg)
     ch1_buf.append(avg)
     ch1_buf.popleft()
+
+
 
     peak_list.append(val)
 
@@ -196,17 +144,61 @@ def AddValue(val):
         if len(filter_peaks)>0:
             peak_x.append(1000)
             peak_y.append(peak_list[filter_peaks[-1]])
+            temp_peak = peak_list[filter_peaks[-1]]
+            goingup = False
             del peak_list[:]
             topanddown = -1
+
+            #angle cal
+            if firstTopOrBottom:
+                base_angle = 0
+                temp_angle = 0
+                firstTopOrBottom = False
+            else:
+                base_angle += 20
+                temp_angle = 0
+                goingflat = True
+
     else:
-        filter_valleys = detect_peaks(peak_list, mph=-40, mpd=20, threshold=0, edge='rising',
+        filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:
             valley_x.append(1000)
             valley_y.append(peak_list[filter_valleys[-1]])
+            temp_valley = peak_list[filter_valleys[-1]]
+            goingup = True
             del peak_list[:]
             topanddown = 1
+
+            if firstTopOrBottom:
+                base_angle = 0
+                temp_angle = 0
+                firstTopOrBottom = False
+            else:
+                base_angle += 20
+                temp_angle = 0
+                goingflat = True
+
+    
+    if goingflat ==  False:
+        if temp_peak*temp_valley != 0:
+            if goingup:
+                temp_angle = abs(val - temp_valley) * 20 / abs(temp_peak - temp_valley)
+            else:
+                temp_angle = abs(val - temp_peak) * 20 / abs(temp_peak - temp_valley)
+    else:
+        goingflat = False
+
+    
+
+    total_angle = base_angle + temp_angle
+
+    if total_angle >= 360:
+        total_angle = 0
+        
+    print(total_angle)
+
 
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
