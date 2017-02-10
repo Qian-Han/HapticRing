@@ -110,7 +110,35 @@ total_angle = 0
 
 firstTopOrBottom = True
 goingup = True
-goingflat = False
+reachingPeak = False
+
+a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
+state_cut_ratio = 0.01
+state_cut_up = 0
+state_cut_down = 0
+b_sensor_dir = 1 #1-increase 2-decrease
+
+#running and notrunning
+running = False
+prev_val = [] #5 frames
+r_count = 0
+
+
+def detectRunning(val_list):
+    val_0 = val_list[0]
+    val_sum = 0
+    for itrv in val_list:
+        val_sum = val_sum + itrv - val_0
+    return abs(val_sum)
+
+def detectState(val, up, down):
+    st = -1
+    if up != 0 and down != 0:
+        if val > up:
+            st = 0
+        elif val < down:
+            st = 2
+    return st
 
 def AddValue(val):
     global avg
@@ -123,7 +151,14 @@ def AddValue(val):
     global temp_valley
     global total_angle
     global goingup
-    global goingflat
+    global reachingPeak
+    global state_cut_up
+    global state_cut_down
+    global a_sensor_state
+    global prev_val
+    global running
+
+    global r_count
 
     ch0_buf.append(val)
     ch0_buf.popleft()
@@ -132,18 +167,41 @@ def AddValue(val):
     ch1_buf.append(avg)
     ch1_buf.popleft()
 
-
-
     peak_list.append(val)
 
     if len(peak_list) > 1000:
         peak_list.pop(0)
 
+    prev_val.append(val)
+    if len(prev_val) > 5:
+        prev_val.pop(0)
+
+        if detectRunning(prev_val) > 3:
+            #print("running")
+            if running == False:
+                running = True
+        else:
+            r_count = r_count + 1
+            print(r_count)
+            if running == True:
+                running = False
+
+                temp_st = detectState(val, state_cut_up, state_cut_down)
+                if temp_st != -1:
+                    a_sensor_state = temp_st
+
+        
+       
+        
+    #running or not
+
+
+
     if topanddown == 1:
         filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=False, show=False, ax=None)
     
-        if len(filter_peaks)>0:
+        if len(filter_peaks)>0:  #found a peak
             peak_x.append(1000)
             peak_y.append(peak_list[filter_peaks[-1]])
             temp_peak = peak_list[filter_peaks[-1]]
@@ -159,13 +217,16 @@ def AddValue(val):
             else:
                 base_angle += 20
                 temp_angle = 0
-                goingflat = True
+                reachingPeak = True
+                state_cut_up = temp_peak - temp_peak * state_cut_ratio
+
+            a_sensor_state = 1
 
     else:
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=True, show=False, ax=None)
 
-        if len(filter_valleys)>0:
+        if len(filter_valleys)>0:  #found a valley
             valley_x.append(1000)
             valley_y.append(peak_list[filter_valleys[-1]])
             temp_valley = peak_list[filter_valleys[-1]]
@@ -180,17 +241,21 @@ def AddValue(val):
             else:
                 base_angle += 20
                 temp_angle = 0
-                goingflat = True
+                reachingPeak = True
+                state_cut_down = temp_valley + temp_valley * state_cut_ratio
+
+            a_sensor_state = 3
+
 
     
-    if goingflat ==  False:
+    if reachingPeak ==  False:
         if temp_peak*temp_valley != 0:
             if goingup:
                 temp_angle = abs(val - temp_valley) * 20 / abs(temp_peak - temp_valley)
             else:
                 temp_angle = abs(val - temp_peak) * 20 / abs(temp_peak - temp_valley)
     else:
-        goingflat = False
+        reachingPeak = False
 
     
 
@@ -200,7 +265,7 @@ def AddValue(val):
         base_angle = 0
         temp_angle = 0
 
-    print(total_angle)
+    #print(total_angle)
 
 
     if len(peak_x)>0:
@@ -214,6 +279,13 @@ def AddValue(val):
             valley_x[itrx] = valley_x[itrx] - 1
 
     #print(peak_x)
+
+    #print(a_sensor_state)
+
+
+    
+
+
     
 
 def serial_read():
