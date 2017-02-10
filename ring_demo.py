@@ -113,7 +113,7 @@ goingup = True
 reachingPeak = False
 
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
-state_cut_ratio = 0.01
+state_cut_ratio = 0.005
 state_cut_up = 0
 state_cut_down = 0
 b_sensor_dir = 1 #1-increase 2-decrease
@@ -121,15 +121,12 @@ b_sensor_dir = 1 #1-increase 2-decrease
 #running and notrunning
 running = False
 prev_val = [] #5 frames
+diff_prev_val = []
 r_count = 0
 
 
 def detectRunning(val_list):
-    val_0 = val_list[0]
-    val_sum = 0
-    for itrv in val_list:
-        val_sum = val_sum + itrv - val_0
-    return abs(val_sum)
+    return np.std(val_list)
 
 def detectState(val, up, down):
     st = -1
@@ -156,6 +153,7 @@ def AddValue(val):
     global state_cut_down
     global a_sensor_state
     global prev_val
+    global diff_prev_val
     global running
 
     global r_count
@@ -173,23 +171,25 @@ def AddValue(val):
         peak_list.pop(0)
 
     prev_val.append(val)
-    if len(prev_val) > 5:
+    if len(prev_val) > 10:
         prev_val.pop(0)
 
-        if detectRunning(prev_val) > 3:
+        std_value = detectRunning(prev_val)
+        
+        if std_value > 0.5:  # predict as running
             #print("running")
             if running == False:
                 running = True
         else:
-            r_count = r_count + 1
-            print(r_count)
+            #r_count = r_count + 1
+            #print(r_count)  #predict as not running
             if running == True:
                 running = False
 
                 temp_st = detectState(val, state_cut_up, state_cut_down)
                 if temp_st != -1:
                     a_sensor_state = temp_st
-
+        
         
        
         
@@ -218,7 +218,7 @@ def AddValue(val):
                 base_angle += 20
                 temp_angle = 0
                 reachingPeak = True
-                state_cut_up = temp_peak - temp_peak * state_cut_ratio
+                state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
 
             a_sensor_state = 1
 
@@ -242,7 +242,7 @@ def AddValue(val):
                 base_angle += 20
                 temp_angle = 0
                 reachingPeak = True
-                state_cut_down = temp_valley + temp_valley * state_cut_ratio
+                state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
             a_sensor_state = 3
 
@@ -280,7 +280,7 @@ def AddValue(val):
 
     #print(peak_x)
 
-    #print(a_sensor_state)
+    print(a_sensor_state)
 
 
     
