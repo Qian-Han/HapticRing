@@ -20,6 +20,8 @@ matplotlib.use('TKAgg')
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 from collections import deque
 #threading
 import threading
@@ -195,8 +197,9 @@ def AddValue(val):
     total_angle = base_angle + temp_angle
 
     if total_angle >= 360:
-        total_angle = 0
-        
+        base_angle = 0
+        temp_angle = 0
+
     print(total_angle)
 
 
@@ -310,20 +313,30 @@ def main():
 
     plot_data, = p1.plot(ch0_buf, animated=True)
 
-    plot_processed, = p2.plot(ch1_buf, animated=True)
+    #plot_processed, = p2.plot(ch1_buf, animated=True)
+    
+    wedge = mpatches.Wedge((0.5, 0.5), 0.2, 0, 0)
+    p2.add_patch(wedge)
+    #p2.axis('equal')
+    #p2.axis("off")
     
     plot_peak, = p1.plot(peak_x, peak_y, 'ro')
     plot_valley, = p1.plot(valley_x, valley_y, 'ro')
 
 
     p1.set_ylim(range_min, range_max)
-    p2.set_ylim(range_min, range_max)
+    #p2.set_ylim(range_min, range_max)
     
     def animate(i):
         plot_data.set_ydata(ch0_buf)
         plot_data.set_xdata(range(len(ch0_buf)))
-        plot_processed.set_ydata(ch1_buf)
-        plot_processed.set_xdata(range(len(ch1_buf)))
+        
+        #plot_processed.set_ydata(ch1_buf)
+        #plot_processed.set_xdata(range(len(ch1_buf)))
+        #wedge.theta1 += 0.1
+        #wedge._recompute_path()
+        wedge.theta2 = total_angle
+        wedge._recompute_path()
 
         plot_peak.set_ydata(peak_y)
         plot_peak.set_xdata(peak_x)
@@ -331,7 +344,7 @@ def main():
         plot_valley.set_ydata(valley_y)
         plot_valley.set_xdata(valley_x)
 
-        return [plot_data, plot_processed, plot_peak, plot_valley]
+        return [plot_data, wedge, plot_peak, plot_valley]
     
     ani = animation.FuncAnimation(fig, animate, range(1000), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
