@@ -29,6 +29,8 @@ import threading
 
 #initilize the channle buffers
 ch0_buf = deque(0 for _ in range(1000))
+# for _ in range(1000):
+#     ch0_buf = 0
 ch1_buf = deque(0 for _ in range(1000))
 avg = 0
 
@@ -120,13 +122,17 @@ b_sensor_dir = 1 #1-increase 2-decrease
 
 #running and notrunning
 running = False
-prev_val = [] #5 frames
+prev_val = [] #10 frames
 diff_prev_val = []
 r_count = 0
 
 
-def detectRunning(val_list):
+def detectRunning(val_list):     
     return np.std(val_list)
+
+
+# def detectRunning(val_list):
+#     return np.std.(val_list)
 
 def detectState(val, up, down):
     st = -1
@@ -136,6 +142,11 @@ def detectState(val, up, down):
         elif val < down:
             st = 2
     return st
+
+
+# def detectState(val, up, down)
+#     st = -1
+#     if up!= 0 and down != 0:
 
 def AddValue(val):
     global avg
@@ -158,10 +169,14 @@ def AddValue(val):
 
     global r_count
 
-    ch0_buf.append(val)
-    ch0_buf.popleft()
+    ch0_buf.append(val)  #array in and array out
+    ch0_buf.popleft()  # queue uses popleft()
+
+    # ch0_buf.append(val)
+    # ch0_buf.popleft()
     
-    avg = avg + 0.1*(val-avg)
+    # 
+    avg = avg + 0.1*(val-avg)    # low-pass filter
     ch1_buf.append(avg)
     ch1_buf.popleft()
 
@@ -175,10 +190,30 @@ def AddValue(val):
         prev_val.pop(0)
 
         std_value = detectRunning(prev_val)
+
+
+
+    # peak_list.append(val)
+    # if len(peak_list) > 1000:
+    #     peak_list.pop(0)
+
+    # prev_val.append(val)
+
+    # if len(prev_val) > 10:
+    #     prev_val.pop(0)
+
+    #     std_value = detectRunning(prev_val)
+
+
+
+
+
+
+        #print(std_value)
         
         if std_value > 0.5:  # predict as running
             #print("running")
-            if running == False:
+            if running == False:  # see the change of state from stop to run at that moment
                 running = True
 
                 if a_sensor_state == 0:
@@ -193,16 +228,46 @@ def AddValue(val):
                 elif a_sensor_state == 3:
                     a_sensor_state = 3
 
+
+        # if std_value > 0.5:
+
+        #     if running == True:
+        #         running = False
+
+        #         if a_sensor_state == 0:
+        #             a_sensor_state = 1
+
+        #         elif a_sensor_state == 1:
+        #             a_sensor_state = 1
+
+        #         elif a_sensor_state == 2:
+        #             a_sensor_state = 2
+
+        #         elif a_sensor_state == 3:
+        #             a_sensor_state = 3
+
+
         else:
             #r_count = r_count + 1
             #print(r_count)  #predict as not running
             if running == True:
                 running = False
 
-                temp_st = detectState(val, state_cut_up, state_cut_down)
+                temp_st = detectState(val, state_cut_up, state_cut_down)  # use state 0 / 2 to judge whether it comes to 1/3;  -1 state doesn't change
                 if temp_st != -1:
                     a_sensor_state = temp_st
-        
+
+
+
+        # else:
+
+        #     if running == True:
+        #         running = False
+
+        #         temp_st = detectState(val, state_cut_up, state_cut_down)
+
+        #         if temp_st !=-1:
+        #             a_sensor_state = temp_st
         
        
         
@@ -210,20 +275,20 @@ def AddValue(val):
 
 
 
-    if topanddown == 1:
-        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',
+    if topanddown == 1:  # To find peak
+        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',  # return the newest location of the peak, threshold: 两个数差值大于0，才找到peak
                  kpsh=False, valley=False, show=False, ax=None)
     
-        if len(filter_peaks)>0:  #found a peak
-            peak_x.append(1000)
-            peak_y.append(peak_list[filter_peaks[-1]])
-            temp_peak = peak_list[filter_peaks[-1]]
-            goingup = False
-            del peak_list[:]
-            topanddown = -1
+        if len(filter_peaks)>0:  #found a peak 
+            peak_x.append(1000)  # return its position  for visualization
+            peak_y.append(peak_list[filter_peaks[-1]])  
+            temp_peak = peak_list[filter_peaks[-1]]   # get the peak
+            goingup = False   
+            del peak_list[:]  # delete for the 
+            topanddown = -1  # To find valley
 
             #angle cal
-            if firstTopOrBottom:
+            if firstTopOrBottom:   # before the first frame
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
@@ -233,7 +298,24 @@ def AddValue(val):
                 reachingPeak = True
                 state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
 
-            a_sensor_state = 1
+            a_sensor_state = 1  # set a state to 1
+
+
+    if topanddown == 1:
+        filter_peaks = detect_peaks(peak_list, mph=940, mpd=20, threshold=0, edge='rising',  # return the newest location of the peak, threshold: 两个数差值大于0，才找到peak
+                 kpsh=False, valley=False, show=False, ax=None)
+
+        temp_peak = peak_list[filter_peaks[-1]]
+        
+
+
+
+
+
+
+
+
+
 
     else:
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
@@ -280,6 +362,7 @@ def AddValue(val):
 
     #print(total_angle)
 
+    # For visualization
 
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
@@ -304,7 +387,7 @@ def AddValue(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=9600)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=9600)
     
     sx = 0
     try:
@@ -325,6 +408,29 @@ def serial_read():
     """
     serial_port.close()
     exit()
+
+
+# def serial_read():
+#     t = threading.currentThread()
+#     serial_read = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=9600)
+#     sx = 0
+
+#     try:
+#         while getattr(t,"do_run",True)
+#         read_val = serial_port.readline()
+#         AddValue(read_val)
+
+#     except ValueError:
+#         pass
+
+#     print("existing")
+
+#     serial_port.close()
+
+#     exit()
+
+
+
 
 
 #############################################################################################
