@@ -573,7 +573,7 @@ def main():
         plot_valley.set_ydata(valley_y)
         plot_valley.set_xdata(valley_x)
 
-        return [plot_data, wedge, plot_peak, plot_valley]
+        return [plot_data, plot_data_ch1, wedge, plot_peak, plot_valley]
     
     ani = animation.FuncAnimation(fig, animate, range(1000), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
