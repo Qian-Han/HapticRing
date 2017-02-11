@@ -134,6 +134,7 @@ temp_valley = 0
 
 base_angle = 0
 temp_angle = 0
+offset_angle = 0
 total_angle = 0
 
 firstTopOrBottom = True
@@ -206,6 +207,7 @@ def AddValue(serial_port, val):
     global temp_peak
     global temp_valley
     global total_angle
+    global offset_angle
     global goingup
     global reachingPeak
     global state_cut_up
@@ -419,12 +421,16 @@ def AddValue(serial_port, val):
                 temp_angle = abs(val - temp_valley) * 20 / abs(temp_peak - temp_valley)
             else:
                 temp_angle = abs(val - temp_peak) * 20 / abs(temp_peak - temp_valley)
+
+            if running == False:
+                    offset_angle = temp_angle
+
     else:
         reachingPeak = False
 
     
 
-    total_angle = base_angle + temp_angle * running_clockwise
+    total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
     if total_angle >= 360:
         base_angle = 0
