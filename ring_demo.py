@@ -124,9 +124,25 @@ prev_val = [] #5 frames
 diff_prev_val = []
 r_count = 0
 
+#moving direction
+running_clockwise = 0  #1->yes  -1->no 
+direction_test_timer = 0
+
 
 def detectRunning(val_list):
     return np.std(val_list)
+
+
+def detectMovingDirection(val_list):
+    if running and len(val_list) > 2:
+        vt = val_list[-1] - val_list[0]
+        if vt > 0:
+            return 1
+        elif vt < 0:
+            return -1
+        else:
+            return 0
+
 
 def detectState(val, up, down):
     st = -1
@@ -153,8 +169,11 @@ def AddValue(val):
     global state_cut_down
     global a_sensor_state
     global prev_val
+    global prev_val_ch1
     global diff_prev_val
     global running
+    global running_clockwise
+    global direction_test_timer
 
     global r_count
 
@@ -180,18 +199,51 @@ def AddValue(val):
             #print("running")
             if running == False:
                 running = True
+                direction_test_timer = 0
 
-                if a_sensor_state == 0:
-                    a_sensor_state = 1
+            #wait for 10 frames
+            if direction_test_timer < 10:
+                direction_test_timer = direction_test_timer + 1
+                if direction_test_timer == 10:
+                    if a_sensor_state == 0:
+                        #see sensor 2
+                        dir_ch1 = detectMovingDirection(prev_val_ch1)
+                        if dir_ch1 == 1:
+                            running_clockwise = -1
+                            a_sensor_state = 3
+                        elif dir_ch1 == -1:
+                            running_clockwise = 1
+                            a_sensor_state = 1
 
-                elif a_sensor_state == 1:
-                    a_sensor_state = 1
+                    elif a_sensor_state == 1:
+                        a_sensor_state = 1
+                        #see sensor 1
+                        dir_ch0 = detectMovingDirection(prev_val)
+                        if dir_ch0 == 1:
+                            running_clockwise = -1
+                        elif dir_ch0 == -1:
+                            running_clockwise = 1
 
-                elif a_sensor_state == 2:
-                    a_sensor_state = 3
 
-                elif a_sensor_state == 3:
-                    a_sensor_state = 3
+                    elif a_sensor_state == 2:
+                        #see sensor 2
+                        dir_ch1 = detectMovingDirection(prev_val_ch1)
+                        if dir_ch1 == 1:
+                            running_clockwise = 1
+                            a_sensor_state = 3
+                        elif dir_ch1 == -1:
+                            running_clockwise = -1
+                            a_sensor_state = 1
+
+                    elif a_sensor_state == 3:
+                        a_sensor_state = 3
+                        #see sensor 1
+                        dir_ch0 = detectMovingDirection(prev_val)
+                        if dir_ch0 == 1:
+                            running_clockwise = 1
+                        elif dir_ch0 == -1:
+                            running_clockwise = -1
+                
 
         else:
             #r_count = r_count + 1
@@ -202,6 +254,8 @@ def AddValue(val):
                 temp_st = detectState(val, state_cut_up, state_cut_down)
                 if temp_st != -1:
                     a_sensor_state = temp_st
+
+                del prev_val_ch1[:]
         
         
        
@@ -227,8 +281,16 @@ def AddValue(val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
+                #initial closewise, see sensor 2
+                dir_ch1 = detectMovingDirection(prev_val_ch1)
+                if dir_ch1 == 1:
+                    running_clockwise = -1
+                elif dir_ch1 == -1:
+                    running_clockwise = 1
+
             else:
-                base_angle += 20
+                base_angle += (20*running_clockwise)
+
                 temp_angle = 0
                 reachingPeak = True
                 state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
@@ -251,8 +313,15 @@ def AddValue(val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
+                #initial closewise, see sensor 2
+                dir_ch1 = detectMovingDirection(prev_val_ch1)
+                if dir_ch1 == 1:
+                    running_clockwise = 1
+                elif dir_ch1 == -1:
+                    running_clockwise = -1
+
             else:
-                base_angle += 20
+                base_angle += (20*running_clockwise)
                 temp_angle = 0
                 reachingPeak = True
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
@@ -272,11 +341,14 @@ def AddValue(val):
 
     
 
-    total_angle = base_angle + temp_angle
+    total_angle = base_angle + temp_angle * running_clockwise
 
     if total_angle >= 360:
         base_angle = 0
         temp_angle = 0
+    elif total_angle <= -1:
+        base_angle = 360
+        temp_angle = -1
 
     #print(total_angle)
 
@@ -296,8 +368,19 @@ def AddValue(val):
     print(a_sensor_state)
 
 
-    
 
+
+
+#variables for b sensor
+prev_val_ch1 = []
+
+def AddValue_Ch1(val):
+    global prev_val_ch1
+
+    if running:
+        prev_val_ch1.append(val)
+        if len(prev_val_ch1) > 10:
+            prev_val_ch1.pop(0)
 
     
 
@@ -313,7 +396,9 @@ def serial_read():
             #split and reading
             read_val_list = [x.strip() for x in read_val.split(',')]
             #print("read:%s"%(read_val))
-            AddValue(int(read_val_list[0]))          
+            if len(read_val_list) == 2:
+                AddValue(int(read_val_list[0])) 
+                AddValue_Ch1(int(read_val_list[1]))         
 
             #time.sleep(0.1)  # ~200Hz
     except ValueError:
