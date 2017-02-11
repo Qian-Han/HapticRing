@@ -294,7 +294,7 @@ def AddValue(val):
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            peak_x.append(1000)
+            peak_x.append(5000)
             peak_y.append(peak_list[filter_peaks[-1]])
             temp_peak = peak_list[filter_peaks[-1]]
             goingup = False
@@ -327,7 +327,7 @@ def AddValue(val):
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            peak_x.append(1000)
+            peak_x.append(5000)
             peak_y.append(peak_list[filter_peaks[-1]])
             del peak_list[:]
             topanddown = -1
@@ -339,7 +339,7 @@ def AddValue(val):
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
-            valley_x.append(1000)
+            valley_x.append(5000)
             valley_y.append(peak_list[filter_valleys[-1]])
             temp_valley = peak_list[filter_valleys[-1]]
             goingup = True
@@ -370,7 +370,7 @@ def AddValue(val):
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
-            valley_x.append(1000)
+            valley_x.append(5000)
             valley_y.append(peak_list[filter_valleys[-1]])
             del peak_list[:]
             topanddown = 1
