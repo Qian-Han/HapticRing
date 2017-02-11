@@ -132,6 +132,9 @@ running_clockwise = 0  #1->yes  -1->no
 direction_test_timer = 0
 
 
+predict_span = 50
+
+
 def detectRunning(val_list):
     return np.std(val_list)
 
@@ -187,7 +190,7 @@ def AddValue(val):
     global running_clockwise
     global direction_test_timer
     global running_ch1
-
+    global predict_span
     global r_count
 
     ch0_buf.append(val)
@@ -205,7 +208,7 @@ def AddValue(val):
         peak_list.pop(0)
 
     prev_val.append(val)
-    if len(prev_val) > 10:
+    if len(prev_val) > predict_span:
         prev_val.pop(0)
 
         std_value = detectRunning(prev_val)
@@ -217,9 +220,9 @@ def AddValue(val):
                 direction_test_timer = 0
 
             #wait for 10 frames
-            if direction_test_timer < 10:
+            if direction_test_timer < predict_span:
                 direction_test_timer = direction_test_timer + 1
-                if direction_test_timer == 10:
+                if direction_test_timer == predict_span:
                     if a_sensor_state == 0:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
@@ -420,12 +423,13 @@ running_ch1 = False
 def AddValue_Ch1(val):
     global prev_val_ch1
     global running_ch1
-
+    global predict_span
+    
     ch1_buf.append(val)
     ch1_buf.popleft()
 
     prev_val_ch1.append(val)
-    if len(prev_val_ch1) > 10:
+    if len(prev_val_ch1) > predict_span:
         prev_val_ch1.pop(0)
 
         std_value_ch1 = detectRunning(prev_val_ch1)
