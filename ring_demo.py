@@ -365,7 +365,7 @@ def AddValue(val):
 
     #print(peak_x)
 
-    print(a_sensor_state)
+    print(running_clockwise)
 
 
 
