@@ -112,6 +112,9 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
+hard_peak = 980
+hard_valley = 30
+
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
 state_cut_ratio = 0.005
 state_cut_up = 0
@@ -154,6 +157,15 @@ def detectState(val, up, down):
     return st
 
 def AddValue(val):
+
+    global hard_valley
+    global hard_peak
+
+    if val > hard_peak:
+        val = hard_peak
+    if val < hard_valley:
+        val = hard_valley
+
     global avg
     global topanddown
 
