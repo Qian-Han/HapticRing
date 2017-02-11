@@ -34,24 +34,24 @@ avg = 0
 
 
 #communication with arduino
-def write_serial(val_string):
+def write_serial(serial_port, val_string):
     serial_port.write(val_string)
 
 tick_event = 0
 
-def tick_tick():
+def tick_tick(serial_port):
     global total_angle
     global tick_event
 
     if total_angle == 10 and tick_event == 0:
-        write_serial("e")
+        write_serial(serial_port, "e")
         tick_event = 1
     elif total_angle == 14 and tick_event == 1:
-        write_serial("e")
+        write_serial(serial_port, "e")
         tick_event = 2
     elif total_angle == 18 and tick_event == 2:
-        write_serial("i")
-        write_serial("i")
+        write_serial(serial_port, "i")
+        write_serial(serial_port, "i")
         tick_event = 0
 
 
@@ -184,7 +184,7 @@ def detectState(val, up, down):
             st = 2
     return st
 
-def AddValue(val):
+def AddValue(serial_port, val):
 
     global hard_valley
     global hard_peak
@@ -432,7 +432,7 @@ def AddValue(val):
 
     #print(total_angle)
 
-    tick_tick()
+    tick_tick(serial_port)
 
 
     if len(peak_x)>0:
@@ -482,7 +482,6 @@ def AddValue_Ch1(val):
             if running_ch1 == True:
                 running_ch1 = False
 
-    
 
 def serial_read():
     t = threading.currentThread()
@@ -497,7 +496,7 @@ def serial_read():
             read_val_list = [x.strip() for x in read_val.split(',')]
             #print("read:%s"%(read_val))
             if len(read_val_list) == 2:
-                AddValue(int(read_val_list[0])) 
+                AddValue(serial_port, int(read_val_list[0])) 
                 AddValue_Ch1(int(read_val_list[1]))         
 
             #time.sleep(0.1)  # ~200Hz
