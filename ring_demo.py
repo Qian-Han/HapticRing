@@ -47,6 +47,7 @@ def tick_tick(serial_port):
         write_serial(serial_port, "e")
         tick_event = 1
         print("event 1 called")
+        """
     elif total_angle == 14 and tick_event == 1:
         write_serial(serial_port, "e")
         tick_event = 2
@@ -56,6 +57,7 @@ def tick_tick(serial_port):
         write_serial(serial_port, "i")
         tick_event = 0
         print("event 3 called")
+        """
 
 
 
