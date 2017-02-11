@@ -310,8 +310,10 @@ def serial_read():
     try:
         while getattr(t, "do_run", True):   
             read_val = serial_port.readline()
+            #split and reading
+            read_val_list = [x.strip() for x in read_val.split(',')]
             #print("read:%s"%(read_val))
-            AddValue(int(read_val))          
+            AddValue(int(read_val_list[0]))          
 
             #time.sleep(0.1)  # ~200Hz
     except ValueError:
