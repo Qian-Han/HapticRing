@@ -193,9 +193,11 @@ def AddValue(val):
     ch0_buf.append(val)
     ch0_buf.popleft()
     
+    """
     avg = avg + 0.1*(val-avg)
     ch1_buf.append(avg)
     ch1_buf.popleft()
+    """
 
     peak_list.append(val)
 
@@ -265,12 +267,13 @@ def AddValue(val):
                 if running == True:
                     running = False
 
+                    """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
                     if temp_st != -1:
                         a_sensor_state = temp_st
 
                     #del prev_val_ch1[:]
-        
+                    """
         
        
         
@@ -309,7 +312,7 @@ def AddValue(val):
                 reachingPeak = True
                 state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
 
-            a_sensor_state = 1
+            a_sensor_state = 0
 
     elif topanddown == 2:  #detect the second top
         filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='falling',
@@ -320,6 +323,8 @@ def AddValue(val):
             peak_y.append(peak_list[filter_peaks[-1]])
             del peak_list[:]
             topanddown = -1
+
+            a_sensor_state = 1
 
     elif topanddown == -1:
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
@@ -350,7 +355,8 @@ def AddValue(val):
                 reachingPeak = True
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
-            a_sensor_state = 3
+            a_sensor_state = 2
+
     elif topanddown == -2:
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=True, show=False, ax=None)
@@ -360,6 +366,8 @@ def AddValue(val):
             valley_y.append(peak_list[filter_valleys[-1]])
             del peak_list[:]
             topanddown = 1
+
+            a_sensor_state = 3
 
 
 
@@ -412,6 +420,9 @@ running_ch1 = False
 def AddValue_Ch1(val):
     global prev_val_ch1
     global running_ch1
+
+    ch1_buf.append(val)
+    ch1_buf.popleft()
 
     prev_val_ch1.append(val)
     if len(prev_val_ch1) > 10:
@@ -531,7 +542,7 @@ def main():
 
     plot_data, = p1.plot(ch0_buf, animated=True)
 
-    #plot_processed, = p2.plot(ch1_buf, animated=True)
+    plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
     
     wedge = mpatches.Wedge((0.5, 0.5), 0.2, 0, 0)
     p2.add_patch(wedge)
@@ -549,8 +560,8 @@ def main():
         plot_data.set_ydata(ch0_buf)
         plot_data.set_xdata(range(len(ch0_buf)))
         
-        #plot_processed.set_ydata(ch1_buf)
-        #plot_processed.set_xdata(range(len(ch1_buf)))
+        plot_data_ch1.set_ydata(ch1_buf)
+        plot_data_ch1.set_xdata(range(len(ch1_buf)))
         #wedge.theta1 += 0.1
         #wedge._recompute_path()
         wedge.theta2 = total_angle
