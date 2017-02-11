@@ -1,5 +1,19 @@
-int t;
-int count;
+//Motor 
+int PWMA = 5; //Speed control
+int DirA = 4; //Direction
+int PWMB = 3; //Speed control
+int DirB = 2; //Direction
+
+int state = -1;
+int count = 0;
+
+
+const int delayTime = 30;
+
+int testspeed = 100;         // change to different motor speed, according to PWM
+int testspeed2 = 255;
+int hhcount = 1;
+
 
 void setup() {
   Serial.begin(115200);
@@ -43,7 +57,7 @@ void loop(){
       break;
 
       case 'c':                      // clear data
-      angle = 0;
+      //angle = 0;
       break;
     }
   }
