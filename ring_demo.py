@@ -32,6 +32,31 @@ ch0_buf = deque(0 for _ in range(5000))
 ch1_buf = deque(0 for _ in range(5000))
 avg = 0
 
+
+#communication with arduino
+def write_serial(val_string):
+    serial_port.write(val_string)
+
+tick_event = 0
+
+def tick_tick():
+    global total_angle
+    global tick_event
+
+    if total_angle == 10 and tick_event == 0:
+        write_serial("e")
+        tick_event = 1
+    elif total_angle == 14 and tick_event == 1:
+        write_serial("e")
+        tick_event = 2
+    elif total_angle == 18 and tick_event == 2:
+        write_serial("i")
+        write_serial("i")
+        tick_event = 0
+
+
+
+
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
                  kpsh=False, valley=False, show=False, ax=None):
 
@@ -281,6 +306,11 @@ def AddValue(val):
 
                     #del prev_val_ch1[:]
                     """
+
+                    #for tick
+                    base_angle = 0
+                    temp_angle = 0
+
         
        
         
@@ -402,6 +432,8 @@ def AddValue(val):
 
     #print(total_angle)
 
+    tick_tick()
+
 
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
@@ -415,7 +447,7 @@ def AddValue(val):
 
     #print(peak_x)
 
-    print(running_clockwise)
+    #print(running_clockwise)
 
 
 
