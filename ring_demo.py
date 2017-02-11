@@ -276,7 +276,7 @@ def AddValue(val):
             temp_peak = peak_list[filter_peaks[-1]]
             goingup = False
             del peak_list[:]
-            topanddown = -1
+            topanddown = 2
 
             #angle cal
             if firstTopOrBottom:
@@ -299,7 +299,17 @@ def AddValue(val):
 
             a_sensor_state = 1
 
-    else:
+    elif topanddown == 2:  #detect the second top
+        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='falling',
+                 kpsh=False, valley=False, show=False, ax=None)
+    
+        if len(filter_peaks)>0:  #found a peak
+            peak_x.append(1000)
+            peak_y.append(peak_list[filter_peaks[-1]])
+            del peak_list[:]
+            topanddown = -1
+
+    elif topanddown == -1:
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=True, show=False, ax=None)
 
@@ -309,7 +319,7 @@ def AddValue(val):
             temp_valley = peak_list[filter_valleys[-1]]
             goingup = True
             del peak_list[:]
-            topanddown = 1
+            topanddown = -2
 
             if firstTopOrBottom:
                 base_angle = 0
@@ -329,6 +339,16 @@ def AddValue(val):
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
             a_sensor_state = 3
+    elif topanddown == -2:
+        filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='falling',
+                 kpsh=False, valley=True, show=False, ax=None)
+
+        if len(filter_valleys)>0:  #found a valley
+            valley_x.append(1000)
+            valley_y.append(peak_list[filter_valleys[-1]])
+            del peak_list[:]
+            topanddown = 1
+
 
 
     
