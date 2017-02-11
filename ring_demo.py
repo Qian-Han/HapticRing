@@ -129,6 +129,9 @@ valley_x = []
 valley_y = []
 topanddown = 1
 
+stop_x = []
+stop_y = []
+
 temp_peak = 0
 temp_valley = 0
 
@@ -316,6 +319,10 @@ def AddValue(serial_port, val):
                     base_angle = 0
                     temp_angle = 0
 
+                    #record stop points
+                    stop_x.append(5000)
+                    stop_y.append(val)
+
         
        
         
@@ -454,6 +461,10 @@ def AddValue(serial_port, val):
         for itrx in range(len(valley_x)):
             valley_x[itrx] = valley_x[itrx] - 1
 
+    if len(stop_x) > 0:
+        for itrx in range(len(stop_x)):
+            stop_x[itrx] = stop_x[itrx] - 1
+
     #print(peak_x)
 
     #print(running_clockwise)
@@ -557,6 +568,8 @@ def main():
     plot_peak, = p1.plot(peak_x, peak_y, 'ro')
     plot_valley, = p1.plot(valley_x, valley_y, 'ro')
 
+    plot_stop, = p1.plot(stop_x, stop_y, 'o', color='yellow')
+
 
     p1.set_ylim(range_min, range_max)
     #p2.set_ylim(range_min, range_max)
@@ -578,7 +591,10 @@ def main():
         plot_valley.set_ydata(valley_y)
         plot_valley.set_xdata(valley_x)
 
-        return [plot_data, plot_data_ch1, wedge, plot_peak, plot_valley]
+        plot_stop.set_ydata(stop_y)
+        plot_stop.set_xdata(stop_x)
+
+        return [plot_data, plot_data_ch1, wedge, plot_peak, plot_valley, plot_stop]
     
     ani = animation.FuncAnimation(fig, animate, range(5000), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
