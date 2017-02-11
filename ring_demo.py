@@ -528,23 +528,9 @@ def main():
         t.do_run = False
         t.join()
 
-    def reScale():
-        range_max_temp = 0
-        range_min_temp = 8800000000
-        for itrd in ch0_buf:
-            if range_max_temp < itrd:
-                range_max_temp = itrd
-            if range_min_temp > itrd:
-                range_min_temp = itrd
-        print("max: %s, min: %s" % (range_max_temp,range_min_temp))
-        return [range_max_temp, range_min_temp] 
-
     def press(event):
         print('press', event.key)
-        sys.stdout.flush()
         #if event.key == 'r':  #reset motor
-
-            
 
         
 

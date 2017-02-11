@@ -82,6 +82,8 @@ void loop(){
 ////  Serial.print("           ");
 //  Serial.println(b);
 //  Serial.print("           ");
+
+/*
   if(a >= ThresholdA_900){
     a = 10;}
     else if(a >= ThresholdA_820 && a < ThresholdA_900)
@@ -103,9 +105,10 @@ void loop(){
     else if(a >= ThresholdA_180 && a < ThresholdA_260)
     {a = 1;}
     else if(a < ThresholdA_180)
-    {a = 0;}
+    {a = 0;}*/
 //  Serial.print(a);  
 
+/*
   if(b >= ThresholdB_750){
     b = 10;}
     else if(b >= ThresholdB_700 && b < ThresholdB_750)
@@ -128,7 +131,7 @@ void loop(){
     {b = 1;}
     else if(b < ThresholdB_300)
     {b = 0;}
-    
+  */  
 //  Serial.print(a);
 //  Serial.print("         ");
 //  Serial.println(b);
@@ -1040,7 +1043,7 @@ if ((lastStateB == 10) && (b == 9)) {
   
   if(Serial.available()>0){
     
-    state = Serial.read();}          // Serial read from monitor
+    state = Serial.read(); }         // Serial read from monitor
     
     switch(state){                   // different state to switch  
       
