@@ -195,7 +195,7 @@ def AddValue(val):
 
         std_value = detectRunning(prev_val)
         
-        if std_value > 0.5:  # predict as running
+        if std_value > 0.7:  # predict as running
             #print("running")
             if running == False:
                 running = True
@@ -248,14 +248,15 @@ def AddValue(val):
         else:
             #r_count = r_count + 1
             #print(r_count)  #predict as not running
-            if running == True:
-                running = False
+            if running_ch1 == False:
+                if running == True:
+                    running = False
 
-                temp_st = detectState(val, state_cut_up, state_cut_down)
-                if temp_st != -1:
-                    a_sensor_state = temp_st
+                    temp_st = detectState(val, state_cut_up, state_cut_down)
+                    if temp_st != -1:
+                        a_sensor_state = temp_st
 
-                del prev_val_ch1[:]
+                    #del prev_val_ch1[:]
         
         
        
@@ -365,7 +366,7 @@ def AddValue(val):
 
     #print(peak_x)
 
-    print(running_clockwise)
+    #print(running_clockwise)
 
 
 
@@ -373,14 +374,25 @@ def AddValue(val):
 
 #variables for b sensor
 prev_val_ch1 = []
+running_ch1 = False
 
 def AddValue_Ch1(val):
     global prev_val_ch1
 
-    if running:
-        prev_val_ch1.append(val)
-        if len(prev_val_ch1) > 10:
-            prev_val_ch1.pop(0)
+    prev_val_ch1.append(val)
+    if len(prev_val_ch1) > 10:
+        prev_val_ch1.pop(0)
+
+        std_value_ch1 = detectRunning(prev_val_ch1)
+
+        print(std_value_ch1)
+
+        if std_value_ch1 > 0.7:  #running
+            if running_ch1 == False:
+                running_ch1 = True
+        else:
+            if running_ch1 == True:
+                running_ch1 = False
 
     
 
