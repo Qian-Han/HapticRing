@@ -116,7 +116,7 @@ hard_peak = 980
 hard_valley = 30
 
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
-state_cut_ratio = 0.005
+state_cut_ratio = 0.001
 state_cut_up = 0
 state_cut_down = 0
 b_sensor_dir = 1 #1-increase 2-decrease
@@ -209,9 +209,12 @@ def AddValue(val):
 
     prev_val.append(val)
     if len(prev_val) > predict_span:
+
         prev_val.pop(0)
 
         std_value = detectRunning(prev_val)
+
+        #print(std_value)
         
         if std_value > 0.75:  # predict as running
             #print("running")
@@ -223,6 +226,7 @@ def AddValue(val):
             if direction_test_timer < predict_span:
                 direction_test_timer = direction_test_timer + 1
                 if direction_test_timer == predict_span:
+
                     if a_sensor_state == 0:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
@@ -281,7 +285,8 @@ def AddValue(val):
        
         
     #running or not
-
+    #print(running)
+    #print("             %s"%(val))
 
 
     if topanddown == 1:
@@ -421,6 +426,8 @@ prev_val_ch1 = []
 running_ch1 = False
 
 def AddValue_Ch1(val):
+
+    #print("       %s"%(val))
     global prev_val_ch1
     global running_ch1
     global predict_span
@@ -448,7 +455,7 @@ def AddValue_Ch1(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=9600)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
     
     sx = 0
     try:

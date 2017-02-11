@@ -11,10 +11,10 @@ void loop(){
   int b = analogRead(A4);
 
 
-  // Show raw picture
-  Serial.println(a);
+   //Show raw picture
+  Serial.print(a);  // 30 or 980
   Serial.print(",");
-  Serial.print(b);
+  Serial.println(b);  // 210 or 820 
 //  t = millis();
 //  count ++ ;
 //  Serial.print(",");
