@@ -28,8 +28,8 @@ import threading
 
 
 #initilize the channle buffers
-ch0_buf = deque(0 for _ in range(1000))
-ch1_buf = deque(0 for _ in range(1000))
+ch0_buf = deque(0 for _ in range(5000))
+ch1_buf = deque(0 for _ in range(5000))
 avg = 0
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -113,7 +113,7 @@ goingup = True
 reachingPeak = False
 
 hard_peak = 980
-hard_valley = 30
+hard_valley = 50
 
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
 state_cut_ratio = 0.001
@@ -586,7 +586,7 @@ def main():
 
         return [plot_data, plot_data_ch1, wedge, plot_peak, plot_valley]
     
-    ani = animation.FuncAnimation(fig, animate, range(1000), 
+    ani = animation.FuncAnimation(fig, animate, range(5000), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
     plt.show()
 
