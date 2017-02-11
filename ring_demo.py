@@ -46,13 +46,16 @@ def tick_tick(serial_port):
     if total_angle == 10 and tick_event == 0:
         write_serial(serial_port, "e")
         tick_event = 1
+        print("event 1 called")
     elif total_angle == 14 and tick_event == 1:
         write_serial(serial_port, "e")
         tick_event = 2
+        print("event 2 called")
     elif total_angle == 18 and tick_event == 2:
         write_serial(serial_port, "i")
         write_serial(serial_port, "i")
         tick_event = 0
+        print("event 3 called")
 
 
 
@@ -537,43 +540,11 @@ def main():
     def press(event):
         print('press', event.key)
         sys.stdout.flush()
-        if event.key == 'r':  #rescale
-            r_max, r_min = reScale()
-            p1.set_ylim(r_min, r_max)
-            p2.set_ylim(r_min, r_max)
-            fig.canvas.draw()
+        #if event.key == 'r':  #reset motor
 
-        if event.key == 'i':  #zoom in
-            r_min, r_max = p1.get_ylim()
-            r_range = r_max - r_min
-            r_adaption = r_range * 0.1
-            p1.set_ylim(r_min+r_adaption, r_max-r_adaption)
-            p2.set_ylim(r_min+r_adaption, r_max-r_adaption)
-            fig.canvas.draw()
+            
 
-        if event.key == 'o':  #zoom out
-            r_min, r_max = p1.get_ylim()
-            r_range = r_max - r_min
-            r_adaption = r_range * 0.1
-            p1.set_ylim(r_min-r_adaption, r_max+r_adaption)
-            p2.set_ylim(r_min-r_adaption, r_max+r_adaption)
-            fig.canvas.draw()
-
-        if event.key == 'w':   #shift up
-            r_min, r_max = p1.get_ylim()
-            r_range = r_max - r_min
-            r_adaption = r_range * 0.1
-            p1.set_ylim(r_min+r_adaption, r_max+r_adaption)
-            p2.set_ylim(r_min+r_adaption, r_max+r_adaption)
-            fig.canvas.draw()
-
-        if event.key == 'x':   #shift down
-            r_min, r_max = p1.get_ylim()
-            r_range = r_max - r_min
-            r_adaption = r_range * 0.1
-            p1.set_ylim(r_min-r_adaption, r_max-r_adaption)
-            p2.set_ylim(r_min-r_adaption, r_max-r_adaption)
-            fig.canvas.draw()
+        
 
     fig, (p1, p2) = plt.subplots(2, 1)
     fig.canvas.mpl_connect('close_event', handle_close)
