@@ -174,6 +174,7 @@ def AddValue(val):
     global running
     global running_clockwise
     global direction_test_timer
+    global running_ch1
 
     global r_count
 
@@ -195,7 +196,7 @@ def AddValue(val):
 
         std_value = detectRunning(prev_val)
         
-        if std_value > 0.7:  # predict as running
+        if std_value > 0.75:  # predict as running
             #print("running")
             if running == False:
                 running = True
@@ -366,7 +367,7 @@ def AddValue(val):
 
     #print(peak_x)
 
-    #print(running_clockwise)
+    print(running_clockwise)
 
 
 
@@ -378,6 +379,7 @@ running_ch1 = False
 
 def AddValue_Ch1(val):
     global prev_val_ch1
+    global running_ch1
 
     prev_val_ch1.append(val)
     if len(prev_val_ch1) > 10:
@@ -385,9 +387,9 @@ def AddValue_Ch1(val):
 
         std_value_ch1 = detectRunning(prev_val_ch1)
 
-        print(std_value_ch1)
+        #print(std_value_ch1)
 
-        if std_value_ch1 > 0.7:  #running
+        if std_value_ch1 > 0.75:  #running
             if running_ch1 == False:
                 running_ch1 = True
         else:
