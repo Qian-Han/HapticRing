@@ -43,18 +43,18 @@ def tick_tick(serial_port):
     global total_angle
     global tick_event
 
-    if total_angle == 10 and tick_event == 0:
+    if total_angle >= 10 and tick_event == 0:
         write_serial(serial_port, "e")
         tick_event = 1
         print("event 1 called")
-    elif total_angle == 14 and tick_event == 1:
+    elif total_angle >= 14 and tick_event == 1:
         write_serial(serial_port, "e")
         tick_event = 2
         print("event 2 called")
-    elif total_angle == 18 and tick_event == 2:
+    elif total_angle >= 18 and tick_event == 2:
         write_serial(serial_port, "i")
         write_serial(serial_port, "i")
-        tick_event = 0
+        tick_event = 4
         print("event 3 called")
         
 
@@ -164,7 +164,7 @@ running_clockwise = 1  #1->yes  -1->no
 direction_test_timer = 0
 
 
-predict_span = 50
+predict_span = 200
 
 
 def detectRunning(val_list):
@@ -225,6 +225,7 @@ def AddValue(serial_port, val):
     global running_ch1
     global predict_span
     global r_count
+    global tick_event
 
     ch0_buf.append(val)
     ch0_buf.popleft()
@@ -248,8 +249,10 @@ def AddValue(serial_port, val):
         std_value = detectRunning(prev_val)
 
         #print(std_value)
+
+        #print(std_value)
         
-        if std_value > 0.75:  # predict as running
+        if std_value > 10:  # predict as running
             #print("running")
             if running == False:
                 running = True
@@ -318,6 +321,7 @@ def AddValue(serial_port, val):
                     #for tick
                     base_angle = 0
                     temp_angle = 0
+                    tick_event = 0
 
                     #record stop points
                     stop_x.append(5000)
@@ -493,9 +497,9 @@ def AddValue_Ch1(val):
 
         std_value_ch1 = detectRunning(prev_val_ch1)
 
-        #print(std_value_ch1)
+        #print("            %s" %(std_value_ch1))
 
-        if std_value_ch1 > 0.75:  #running
+        if std_value_ch1 > 10:  #running
             if running_ch1 == False:
                 running_ch1 = True
         else:
