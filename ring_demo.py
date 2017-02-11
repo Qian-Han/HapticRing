@@ -128,7 +128,7 @@ diff_prev_val = []
 r_count = 0
 
 #moving direction
-running_clockwise = 0  #1->yes  -1->no 
+running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
 
 
@@ -231,7 +231,7 @@ def AddValue(val):
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
                         if dir_ch1 == 1:
-                            running_clockwise = -1
+                            running_clockwise = 1 #-1
                             a_sensor_state = 3
                         elif dir_ch1 == -1:
                             running_clockwise = 1
@@ -242,7 +242,7 @@ def AddValue(val):
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
                         if dir_ch0 == 1:
-                            running_clockwise = -1
+                            running_clockwise = 1 #-1
                         elif dir_ch0 == -1:
                             running_clockwise = 1
 
@@ -254,7 +254,7 @@ def AddValue(val):
                             running_clockwise = 1
                             a_sensor_state = 3
                         elif dir_ch1 == -1:
-                            running_clockwise = -1
+                            running_clockwise = 1 #-1
                             a_sensor_state = 1
 
                     elif a_sensor_state == 3:
@@ -264,7 +264,7 @@ def AddValue(val):
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
-                            running_clockwise = -1
+                            running_clockwise = 1 #-1
                 
 
         else:
@@ -309,7 +309,7 @@ def AddValue(val):
                 #initial closewise, see sensor 2
                 dir_ch1 = detectMovingDirection(prev_val_ch1)
                 if dir_ch1 == 1:
-                    running_clockwise = -1
+                    running_clockwise = 1 #-1
                 elif dir_ch1 == -1:
                     running_clockwise = 1
 
@@ -355,7 +355,7 @@ def AddValue(val):
                 if dir_ch1 == 1:
                     running_clockwise = 1
                 elif dir_ch1 == -1:
-                    running_clockwise = -1
+                    running_clockwise = 1 #-1
 
             else:
                 base_angle += (20*running_clockwise)
