@@ -27,9 +27,11 @@ from collections import deque
 import threading
 
 
+axis_span = 1000
+
 #initilize the channle buffers
-ch0_buf = deque(0 for _ in range(5000))
-ch1_buf = deque(0 for _ in range(5000))
+ch0_buf = deque(0 for _ in range(axis_span))
+ch1_buf = deque(0 for _ in range(axis_span))
 avg = 0
 
 
@@ -132,9 +134,6 @@ topanddown = 1
 stop_x = []
 stop_y = []
 
-temp_peak = 0
-temp_valley = 0
-
 base_angle = 0
 temp_angle = 0
 offset_angle = 0
@@ -144,8 +143,11 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
-hard_peak = 980
-hard_valley = 50
+hard_peak = 800
+hard_valley = 100
+
+temp_peak = hard_peak
+temp_valley = hard_valley
 
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
 state_cut_ratio = 0.001
@@ -324,7 +326,7 @@ def AddValue(serial_port, val):
                     tick_event = 0
 
                     #record stop points
-                    stop_x.append(5000)
+                    stop_x.append(axis_span)
                     stop_y.append(val)
 
         
@@ -336,11 +338,13 @@ def AddValue(serial_port, val):
 
 
     if topanddown == 1:
+        
+        """
         filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            peak_x.append(5000)
+            peak_x.append(axis_span)
             peak_y.append(peak_list[filter_peaks[-1]])
             temp_peak = peak_list[filter_peaks[-1]]
             goingup = False
@@ -368,24 +372,65 @@ def AddValue(serial_port, val):
 
             a_sensor_state = 0
 
+            """
+
+        if val==hard_peak:
+            peak_x.append(axis_span)
+            peak_y.append(hard_peak)
+            temp_peak = hard_peak
+            
+            del peak_list[:]
+            topanddown = 2
+
+            print(topanddown)
+
+            #angle cal
+            if firstTopOrBottom:
+                base_angle = 0
+                temp_angle = 0
+                firstTopOrBottom = False
+                #initial closewise, see sensor 2
+                dir_ch1 = detectMovingDirection(prev_val_ch1)
+                if dir_ch1 == 1:
+                    running_clockwise = 1 #-1
+                elif dir_ch1 == -1:
+                    running_clockwise = 1
+
+            else:
+                base_angle += (20*running_clockwise)
+
+                temp_angle = 0
+                reachingPeak = True
+                state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
+
+            a_sensor_state = 0
+
+
     elif topanddown == 2:  #detect the second top
-        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='falling',
+        filter_peaks = detect_peaks(peak_list, mph=hard_peak-1, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            peak_x.append(5000)
+            peak_x.append(axis_span)
             peak_y.append(peak_list[filter_peaks[-1]])
             del peak_list[:]
             topanddown = -1
 
+            print(topanddown)
+
+            goingup = False
+            reachingPeak = False
+
             a_sensor_state = 1
 
     elif topanddown == -1:
+
+        """
         filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
-            valley_x.append(5000)
+            valley_x.append(axis_span)
             valley_y.append(peak_list[filter_valleys[-1]])
             temp_valley = peak_list[filter_valleys[-1]]
             goingup = True
@@ -410,20 +455,53 @@ def AddValue(serial_port, val):
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
             a_sensor_state = 2
+        """
+
+        if val == hard_valley:
+
+            valley_x.append(axis_span)
+            valley_y.append(hard_valley)
+            temp_valley = hard_valley
+            
+            del peak_list[:]
+            topanddown = -2
+
+            print(topanddown)
+
+            if firstTopOrBottom:
+                base_angle = 0
+                temp_angle = 0
+                firstTopOrBottom = False
+                #initial closewise, see sensor 2
+                dir_ch1 = detectMovingDirection(prev_val_ch1)
+                if dir_ch1 == 1:
+                    running_clockwise = 1
+                elif dir_ch1 == -1:
+                    running_clockwise = 1 #-1
+
+            else:
+                base_angle += (20*running_clockwise)
+                temp_angle = 0
+                reachingPeak = True
+                state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
+
+            a_sensor_state = 2
+
 
     elif topanddown == -2:
-        filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='falling',
+        filter_valleys = detect_peaks(peak_list, mph=-101, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
-            valley_x.append(5000)
+            valley_x.append(axis_span)
             valley_y.append(peak_list[filter_valleys[-1]])
             del peak_list[:]
             topanddown = 1
-
+            goingup = True
+            reachingPeak = False
             a_sensor_state = 3
 
-
+            print(topanddown)
 
     
     if reachingPeak ==  False:
@@ -435,9 +513,6 @@ def AddValue(serial_port, val):
 
             if running == False:
                     offset_angle = temp_angle
-
-    else:
-        reachingPeak = False
 
     
 
@@ -452,7 +527,7 @@ def AddValue(serial_port, val):
 
     #print(total_angle)
 
-    tick_tick(serial_port)
+    #tick_tick(serial_port)
 
 
     if len(peak_x)>0:
@@ -510,7 +585,7 @@ def AddValue_Ch1(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=9600)
     
     sx = 0
     try:
@@ -561,17 +636,16 @@ def main():
     range_min = -10
 
     plot_data, = p1.plot(ch0_buf, animated=True)
-
     plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
     
     wedge = mpatches.Wedge((0.5, 0.5), 0.2, 0, 0)
     p2.add_patch(wedge)
     #p2.axis('equal')
     #p2.axis("off")
+    txt_angle = p2.text(0.7, 0.9, '', transform=p2.transAxes, animated=True)
     
     plot_peak, = p1.plot(peak_x, peak_y, 'ro')
     plot_valley, = p1.plot(valley_x, valley_y, 'ro')
-
     plot_stop, = p1.plot(stop_x, stop_y, 'o', color='yellow')
 
 
@@ -589,6 +663,8 @@ def main():
         wedge.theta2 = total_angle
         wedge._recompute_path()
 
+        txt_angle.set_text('angle = %s' % (total_angle))
+
         plot_peak.set_ydata(peak_y)
         plot_peak.set_xdata(peak_x)
 
@@ -598,9 +674,9 @@ def main():
         plot_stop.set_ydata(stop_y)
         plot_stop.set_xdata(stop_x)
 
-        return [plot_data, plot_data_ch1, wedge, plot_peak, plot_valley, plot_stop]
+        return [plot_data, plot_data_ch1, wedge, txt_angle, plot_peak, plot_valley, plot_stop]
     
-    ani = animation.FuncAnimation(fig, animate, range(5000), 
+    ani = animation.FuncAnimation(fig, animate, range(axis_span), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
     plt.show()
 
