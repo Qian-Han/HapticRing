@@ -260,8 +260,8 @@ def AddValue(serial_port, val):
                 running = True
                 direction_test_timer = 0
 
-            #wait for 10 frames
-            if direction_test_timer < predict_span:
+            #wait for span/2 frames
+            if direction_test_timer < predict_span/2:
                 direction_test_timer = direction_test_timer + 1
                 if direction_test_timer == predict_span:
 
@@ -281,6 +281,7 @@ def AddValue(serial_port, val):
                         dir_ch0 = detectMovingDirection(prev_val)
                         if dir_ch0 == 1:
                             running_clockwise = 1 #-1
+                            #topanddown = 1
                         elif dir_ch0 == -1:
                             running_clockwise = 1
 
@@ -293,6 +294,7 @@ def AddValue(serial_port, val):
                             a_sensor_state = 3
                         elif dir_ch1 == -1:
                             running_clockwise = 1 #-1
+
                             a_sensor_state = 1
 
                     elif a_sensor_state == 3:
@@ -302,7 +304,8 @@ def AddValue(serial_port, val):
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
-                            running_clockwise = 1 #-1
+                            running_clockwise = #-1
+                            #topanddown = -1
                 
 
         else:
@@ -383,7 +386,7 @@ def AddValue(serial_port, val):
             del peak_list[:]
             topanddown = 2
 
-            print(topanddown)
+            #print(topanddown)
 
             #angle cal
             if firstTopOrBottom:
@@ -417,7 +420,7 @@ def AddValue(serial_port, val):
             del peak_list[:]
             topanddown = -1
 
-            print(topanddown)
+            #print(topanddown)
 
             goingup = False
             reachingPeak = False
@@ -467,7 +470,7 @@ def AddValue(serial_port, val):
             del peak_list[:]
             topanddown = -2
 
-            print(topanddown)
+            #print(topanddown)
 
             if firstTopOrBottom:
                 base_angle = 0
@@ -502,7 +505,7 @@ def AddValue(serial_port, val):
             reachingPeak = False
             a_sensor_state = 3
 
-            print(topanddown)
+            #print(topanddown)
 
     
     if reachingPeak ==  False:
@@ -587,7 +590,7 @@ def AddValue_Ch1(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=9600)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
     
     sx = 0
     try:
