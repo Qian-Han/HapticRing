@@ -9,7 +9,7 @@ int count = 0;
 
 
 const int delayTime = 30;
-const int delayTimeTick = 90;
+const int delayTimeTick = 150;
 const int preTickStep = 4;
 
 
@@ -125,11 +125,26 @@ void doTick(){
 
   move(1,testspeed2,0);
   delay(delayTimeTick);
+  
   move(1,testspeed2,1);
   delay(delayTimeTick - 22);  // test
   move(1,0,0);
    
   }
+
+//void doTick(){
+//
+//  move(1,testspeed2,0);
+//  delay(delayTimeTick);
+//  move(1,0,0);
+//  delay(500);
+//  
+//  move(1,testspeed2,1);
+//  delay(delayTimeTick -20);  // test
+//  move(1,0,0);
+//   
+//  }
+
 
 
 void preTick(){
