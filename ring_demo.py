@@ -26,6 +26,11 @@ from collections import deque
 #threading
 import threading
 
+from motor import motor
+from matplotlib.widgets import Button
+
+mMotor = motor()
+
 
 axis_span = 1000
 
@@ -39,8 +44,8 @@ avg = 0
 def write_serial(serial_port, val_string):
     serial_port.write(val_string)
 
-tick_event = 0
 
+tick_event = 0
 def tick_tick(serial_port):
     global total_angle
     global tick_event
@@ -514,7 +519,8 @@ def AddValue(serial_port, val):
     if running:
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
-        tick_tick(serial_port)
+        if trigger_state == 1:
+            tick_tick(serial_port)
 
 
     if len(peak_x)>0:
@@ -572,7 +578,7 @@ def AddValue_Ch1(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
     
     sx = 0
     try:
@@ -601,6 +607,8 @@ def serial_read():
 
 #############################################################################################
 
+
+
 def main():
     t = threading.Thread(target=serial_read)
     t.start()
@@ -608,6 +616,8 @@ def main():
     def handle_close(evt):
         t.do_run = False
         t.join()
+        mMotor.close()
+
 
     def press(event):
         print('press', event.key)
@@ -618,6 +628,24 @@ def main():
     fig, (p1, p2) = plt.subplots(2, 1)
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
+
+    axreset = plt.axes([0.59, 0.01, 0.1, 0.05])
+    axtick = plt.axes([0.7, 0.01, 0.1, 0.05])
+    axspring = plt.axes([0.81, 0.01, 0.1, 0.05])
+    axtune_up = plt.axes([0.1, 0.01, 0.1, 0.05])
+    axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
+
+    breset = Button(axreset, 'Reset')
+    breset.on_clicked(mMotor.reset)
+    btick = Button(axtick, 'Tick')
+    btick.on_clicked(mMotor.tick)
+    bspring = Button(axspring, 'Spring')
+    bspring.on_clicked(mMotor.spring)
+    btune_up = Button(axtune_up, '+1')
+    btune_up.on_clicked(mMotor.tune_up)
+    btune_down = Button(axtune_down, '-1')
+    btune_down.on_clicked(mMotor.tune_down)
+
 
     range_max = 1100
     range_min = -10
