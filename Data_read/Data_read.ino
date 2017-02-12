@@ -9,6 +9,10 @@ int count = 0;
 
 
 const int delayTime = 30;
+const int delayTimeTick = 90;
+const int preTickStep = 4;
+
+
 
 int testspeed = 100;         // change to different motor speed, according to PWM
 int testspeed2 = 255;
@@ -45,11 +49,11 @@ void loop(){
       break;
 
       case 'e':                      // First motor makes the brake move down slowly
-      slowMinimumStepDown();
+      doTick();
       break;
 
-      case 'i':                      // First motor makes the brake move up slowly
-      slowMinimumStepUp();
+      case 'p':                      // First motor makes the brake move up slowly
+      preTick();
       break;
 
       case 's':                      // Stop first motor
@@ -116,6 +120,30 @@ void slowMinimumStepUp(){    // minimumStepUp
   move(1,0,0);
   
   }
+
+void doTick(){
+
+  move(1,testspeed2,0);
+  delay(delayTimeTick);
+  move(1,testspeed2,1);
+  delay(delayTimeTick - 22);  // test
+  move(1,0,0);
+   
+  }
+
+
+void preTick(){
+
+  for(int i = 0;i < preTickStep; i++)
+  {
+    move(1,testspeed2,0);
+    delay(delayTimeTick);
+  }
+
+  move(1,0,0);
+   
+  }
+  
   
 
 void Stop(){              // Stop

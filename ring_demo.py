@@ -45,19 +45,10 @@ def tick_tick(serial_port):
     global total_angle
     global tick_event
 
-    if total_angle >= 10 and tick_event == 0:
+    if total_angle >= 22 and tick_event == 0:
         write_serial(serial_port, "e")
         tick_event = 1
         print("event 1 called")
-    elif total_angle >= 14 and tick_event == 1:
-        write_serial(serial_port, "e")
-        tick_event = 2
-        print("event 2 called")
-    elif total_angle >= 18 and tick_event == 2:
-        write_serial(serial_port, "i")
-        write_serial(serial_port, "i")
-        tick_event = 4
-        print("event 3 called")
         
 
 
@@ -304,7 +295,7 @@ def AddValue(serial_port, val):
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
-                            running_clockwise = #-1
+                            running_clockwise = 1 #-1
                             #topanddown = -1
                 
 
@@ -523,16 +514,7 @@ def AddValue(serial_port, val):
     if running:
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
-        if total_angle >= 360:
-            base_angle = 0
-            temp_angle = 0
-        elif total_angle <= -1:
-            base_angle = 360
-            temp_angle = -1
-
-        #print(total_angle)
-
-        #tick_tick(serial_port)
+        tick_tick(serial_port)
 
 
     if len(peak_x)>0:
