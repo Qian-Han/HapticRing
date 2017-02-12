@@ -32,7 +32,7 @@ class motor(object):
 
 	def spring(self, event):
 		self.trigger_state =2
-		get_ready(self)		
+		self.serial_port.write("g")	
 		print(self.trigger_state)
 
 	def get_ready(self):
