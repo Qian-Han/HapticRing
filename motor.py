@@ -32,7 +32,7 @@ class motor(object):
 
 	def spring(self, event):
 		self.trigger_state =2
-		get_ready()		
+		get_ready(self)		
 		print(self.trigger_state)
 
 	def get_ready(self):
