@@ -324,6 +324,7 @@ def AddValue(serial_port, val):
                     base_angle = 0
                     temp_angle = 0
                     tick_event = 0
+                    total_angle = 0
 
                     #record stop points
                     stop_x.append(axis_span)
@@ -516,18 +517,19 @@ def AddValue(serial_port, val):
 
     
 
-    total_angle = base_angle + temp_angle * running_clockwise - offset_angle
+    if running:
+        total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
-    if total_angle >= 360:
-        base_angle = 0
-        temp_angle = 0
-    elif total_angle <= -1:
-        base_angle = 360
-        temp_angle = -1
+        if total_angle >= 360:
+            base_angle = 0
+            temp_angle = 0
+        elif total_angle <= -1:
+            base_angle = 360
+            temp_angle = -1
 
-    #print(total_angle)
+        #print(total_angle)
 
-    #tick_tick(serial_port)
+        #tick_tick(serial_port)
 
 
     if len(peak_x)>0:
