@@ -6,6 +6,9 @@ class motor(object):
 	def __init__(self):
 		self.serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
 		self.trigger_state = 0
+		self.val = 0
+		self.ready_to_stop_motor = 90
+		self.ready_to_stop_sensor = 180
 
 	def close(self):
 		self.serial_port.close()
@@ -29,10 +32,23 @@ class motor(object):
 
 	def spring(self, event):
 		self.trigger_state =2
+		get_ready()		
 		print(self.trigger_state)
+
+	def get_ready(self):
+		self.serial_port.write("g")
 
 	def get_angle(self, val):
 		print(val)
+		if self.trigger_state == 2: #spring
+			val_interval = val - self.val
+			if val_interval >=2 and val < 180
+				self.serial_port.write("m")  #step down
+
+				self.val = val
+
+
+
 
 
 

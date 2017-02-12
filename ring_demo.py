@@ -322,9 +322,9 @@ def AddValue(serial_port, val):
                     """
 
                     #for tick
-                    base_angle = 0
-                    temp_angle = 0
-                    total_angle = 0
+                    #base_angle = 0
+                    #temp_angle = 0
+                    #total_angle = 0
 
                     #record stop points
                     stop_x.append(axis_span)
@@ -612,6 +612,11 @@ def serial_read():
 
 
 def main():
+
+    global total_angle
+    global temp_angle
+    global base_angle
+
     t = threading.Thread(target=serial_read)
     t.start()
 
@@ -622,10 +627,13 @@ def main():
 
 
     def press(event):
-        print('press', event.key)
         #if event.key == 'r':  #reset motor
+        mMotor.write_serial(event.key)
 
-        
+    def reset(self, event):
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
 
     fig, (p1, p2) = plt.subplots(2, 1)
     fig.canvas.mpl_connect('close_event', handle_close)
@@ -638,7 +646,8 @@ def main():
     axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
 
     breset = Button(axreset, 'Reset')
-    breset.on_clicked(mMotor.reset)
+    breset.on_clicked(reset)
+
     btick = Button(axtick, 'Tick')
     btick.on_clicked(mMotor.tick)
     bspring = Button(axspring, 'Spring')
