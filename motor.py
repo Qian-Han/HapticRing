@@ -31,5 +31,8 @@ class motor(object):
 		self.trigger_state =2
 		print(self.trigger_state)
 
+	def get_angle(self, val):
+		print(val)
+
 
 

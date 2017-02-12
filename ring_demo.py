@@ -45,6 +45,7 @@ def write_serial(serial_port, val_string):
     serial_port.write(val_string)
 
 
+"""
 tick_event = 0
 def tick_tick(serial_port):
     global total_angle
@@ -55,7 +56,7 @@ def tick_tick(serial_port):
         tick_event = 1
         print("event 1 called")
         
-
+"""
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -164,6 +165,8 @@ direction_test_timer = 0
 
 predict_span = 200
 
+running_mode = 2 # 1 -> reset  2-> no reset
+
 
 def detectRunning(val_list):
     return np.std(val_list)
@@ -223,8 +226,7 @@ def AddValue(serial_port, val):
     global running_ch1
     global predict_span
     global r_count
-    global tick_event
-
+    
     ch0_buf.append(val)
     ch0_buf.popleft()
     
@@ -322,7 +324,6 @@ def AddValue(serial_port, val):
                     #for tick
                     base_angle = 0
                     temp_angle = 0
-                    tick_event = 0
                     total_angle = 0
 
                     #record stop points
@@ -516,12 +517,13 @@ def AddValue(serial_port, val):
 
     
 
-    if running:
+    if running and running_mode == 1:
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
+    if running and running_mode == 2:
+        total_angle = base_angle + temp_angle * running_clockwise
 
-        if trigger_state == 1:
-            tick_tick(serial_port)
-
+        if mMotor.trigger_state > 0:
+            mMotor.get_angle(total_angle)
 
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
