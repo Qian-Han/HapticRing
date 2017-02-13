@@ -65,8 +65,7 @@ class motor(object):
 
 					print(self.val)
 
-			if val > 180:
-
+			else:
 				if self.spring_step == 1:
 					self.spring_step = 0
 					print(self.step_count)
@@ -90,8 +89,9 @@ class motor(object):
 					self.step_count += 1
 
 					self.val = val
+					print(self.val)
 
-			elif val> 20.0:
+			else:
 				if self.tick_step == 1:
 					self.tick_step = 0
 					print(self.step_count)
