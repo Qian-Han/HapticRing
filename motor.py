@@ -67,6 +67,7 @@ class motor(object):
 
 				if self.spring_step == 1:
 					self.spring_step = 0
+					print(self.step_count)
 					for x in range(0, self.step_count):
 						self.serial_port.write("p")
 
@@ -91,6 +92,7 @@ class motor(object):
 			elif val> 20.0:
 				if self.tick_step == 1:
 					self.tick_step = 0
+					print(self.step_count)
 					for x  in range(0, self.step_count):
 						self.serial_port.write("p")
 

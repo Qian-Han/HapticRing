@@ -322,10 +322,10 @@ def AddValue(serial_port, val):
                     #del prev_val_ch1[:]
                     """
 
-                    #for tick
-                    #base_angle = 0
-                    #temp_angle = 0
-                    #total_angle = 0
+                    if running_mode == 1:
+                        base_angle = 0
+                        temp_angle = 0
+                        total_angle = 0
 
                     #record stop points
                     stop_x.append(axis_span)
@@ -518,9 +518,10 @@ def AddValue(serial_port, val):
 
     
 
-    if running and running_mode == 1:
+    if running and running_mode == 1: #auto reset
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
-    if running and running_mode == 2:
+
+    if running and running_mode == 2:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
 
         if total_angle > 360:
