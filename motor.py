@@ -42,7 +42,7 @@ class motor(object):
 		#print(val)
 		if self.trigger_state == 2: #spring
 			val_interval = val - self.val
-			if val_interval >=2 and val <= 180:
+			if val_interval >=3 and val <= 180:
 				self.serial_port.write("m")  #step down
 				print("motor move")
 				self.val = val
