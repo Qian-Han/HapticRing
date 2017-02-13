@@ -635,7 +635,7 @@ def main():
         #if event.key == 'r':  #reset motor
         mMotor.write_serial(event.key)
 
-    def reset(self, event):
+    def reset(event):
         base_angle = 0
         temp_angle = 0
         total_angle = 0
