@@ -11,6 +11,7 @@ from array import *
 import binascii
 import numpy as np
 from math import *
+from __future__ import division
 import os
 os.environ['PYTHON_EGG_CACHE'] = '/tmp'
 
