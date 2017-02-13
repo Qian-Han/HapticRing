@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from __future__ import division
 import sys
 import collections
 import serial
@@ -11,7 +11,7 @@ from array import *
 import binascii
 import numpy as np
 from math import *
-from __future__ import division
+
 import os
 os.environ['PYTHON_EGG_CACHE'] = '/tmp'
 
