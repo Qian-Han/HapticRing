@@ -64,7 +64,7 @@ class motor(object):
 
 				val_interval = val - self.val
 
-				if val_interval >= 0.1
+				if val_interval >= 0.1:
 					self.serial_port.write("m")
 					self.step_count += 1
 
