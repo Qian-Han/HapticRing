@@ -51,7 +51,7 @@ def tick_tick(serial_port):
     global total_angle
     global tick_event
 
-    if total_angle >= 22 and tick_event == 0:
+    if total_angle >= 15 and tick_event == 0:
         write_serial(serial_port, "e")
         tick_event = 1
         print("event 1 called")

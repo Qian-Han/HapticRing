@@ -7,13 +7,16 @@ int DirB = 2; //Direction
 int state = -1;
 int count = 0;
 
-
+const int delayTimeXS = 3;
 const int delayTimeS = 10;
 const int delayTimeM = 20;
 const int delayTimeL = 30;
 
+const int getReadyTime = 130;
+
 const int delayTimeTick = 150;
-const int preTickStep = 4;
+
+
 
 
 int testspeed = 255;
@@ -30,6 +33,10 @@ void loop(){
     state = Serial.read();          
     
     switch(state){                   // different state to switch  
+
+      case 'p':                      
+      minimumStepUpXS();
+      break;
       
       case 'q':                      
       minimumStepUpS();
@@ -43,7 +50,22 @@ void loop(){
       minimumStepUpL();
       break;
 
+
+
+      case 'g':                      
+      getReady();
+      break;
+
+      case 'r':                      
+      reset();
+      break;
+
+
       
+
+      case 'm':                      
+      minimumStepDownXS();
+      break;
 
       case 'z':                      
       minimumStepDownS();
@@ -57,7 +79,9 @@ void loop(){
       minimumStepDownL();
       break;
 
-      
+
+
+    
 
       case 's':                      // Stop first motor
       Stop();
@@ -89,7 +113,26 @@ void move(int motor, int speed, int direction) {  // Motor moves function
   }
 }
 
+void getReady(){    
+  move(1,testspeed,0);
+  delay(getReadyTime);
+  move(1,0,0);
+  
+}
 
+void reset(){    
+  move(1,testspeed,1);
+  delay(getReadyTime);
+  move(1,0,0);
+}
+
+
+void minimumStepUpXS(){    
+  move(1,testspeed,1);
+  delay(delayTimeXS);
+  move(1,0,0);
+  
+}
 
 
 void minimumStepUpS(){    
@@ -110,6 +153,14 @@ void minimumStepUpM(){
 void minimumStepUpL(){    
   move(1,testspeed,1);
   delay(delayTimeL);
+  move(1,0,0);
+  
+}
+
+
+void minimumStepDownXS(){    
+  move(1,testspeed,0);
+  delay(delayTimeXS);
   move(1,0,0);
   
 }
