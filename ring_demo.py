@@ -695,7 +695,7 @@ def main():
         wedge.theta2 = total_angle
         wedge._recompute_path()
 
-        txt_angle.set_text('angle = %s' % (total_angle))
+        txt_angle.set_text('angle = %1.2f' % (total_angle))
 
         plot_peak.set_ydata(peak_y)
         plot_peak.set_xdata(peak_x)
