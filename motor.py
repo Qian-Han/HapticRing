@@ -10,6 +10,7 @@ class motor(object):
 		self.ready_to_stop_motor = 90
 		self.ready_to_stop_sensor = 180
 		self.tick_step = 0
+		self.spring_step = 0
 		self.step_count = 0
 
 	def close(self):
@@ -30,16 +31,17 @@ class motor(object):
 
 	def tick(self, event):
 		self.trigger_state = 1
+		self.serial_port.write("g")	
 		self.tick_step = 0
 		self.step_count = 0
-		self.val = 0
 		print(self.trigger_state)
 
 
 	def spring(self, event):
 		self.trigger_state =2
 		self.serial_port.write("g")	
-		self.val = 0
+		self.step_count = 0
+		self.spring_step = 0
 		print(self.trigger_state)
 
 	def get_ready(self):
@@ -48,16 +50,24 @@ class motor(object):
 	def get_angle(self, val):
 		#print(val)
 		if self.trigger_state == 2: #spring
-			val_interval = val - self.val
-			if val_interval >=6 and val <= 358:
-				self.serial_port.write("m")  #step down
-				#print("motor move")
+			if val <= 180 and val > 0:
+				if self.spring_step == 0:
+					self.spring_step = 1
+				val_interval = val - self.val
 
-			if val >= 358:
-				if self.val != 0:
-					self.val = 0
+				if val_interval >=3:
+				
+					self.serial_port.write("m")  #step down
+					#print("motor move")
+					self.step_count += 1
 
-			self.val = val			
+			if val > 180 and self.spring_step == 1:
+				self.spring_step = 0
+				for x in range(0, self.step_count):
+					self.serial_port.write("p")
+
+				self.step_count = 0
+	
 
 		elif self.trigger_state == 1: #tick
 			if val >= 15.0 and val <= 17.0:
@@ -75,7 +85,11 @@ class motor(object):
 				for x  in range(0, self.step_count):
 					self.serial_port.write("p")
 
-			self.val = val
+				self.step_count = 0
+
+		self.val = val
+
+			
 
 			
 
