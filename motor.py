@@ -63,6 +63,8 @@ class motor(object):
 
 					self.val = val
 
+					print(self.val)
+
 			if val > 180:
 
 				if self.spring_step == 1:
