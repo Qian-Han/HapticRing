@@ -61,6 +61,8 @@ class motor(object):
 
 		elif self.trigger_state == 1: #tick
 			if val >= 15.0 and val <= 17.0:
+				if self.tick_step == 0:
+					self.tick_step = 1
 
 				val_interval = val - self.val
 
@@ -68,7 +70,8 @@ class motor(object):
 					self.serial_port.write("m")
 					self.step_count += 1
 
-			elif val> 17:
+			elif val> 17 and self.tick_step == 1:
+				self.tick_step = 0
 				for x  in range(0, self.step_count):
 					self.serial_port.write("p")
 
