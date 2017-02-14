@@ -491,7 +491,7 @@ def AddValue(serial_port, val):
 
 
     elif topanddown == -2:
-        filter_valleys = detect_peaks(peak_list, mph=-(hard_valley-1), mpd=20, threshold=0, edge='falling',
+        filter_valleys = detect_peaks(peak_list, mph=-hard_valley-1, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
