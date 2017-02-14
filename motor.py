@@ -50,14 +50,15 @@ class motor(object):
 	def get_angle(self, val):
 		#print(val)
 		if self.trigger_state == 2: #spring
-			if val > 2.0 and val <= 180.0:
+			if val >= 2.0 and val <= 180.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
 				val_interval = val - self.val
 
 				if val_interval >=3.0:
 					step_interval = (int)(val_interval / 3.0)
-					for x in range(step_interval):
+					print(step_interval)
+					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
 
@@ -86,7 +87,8 @@ class motor(object):
 
 				if val_interval >= 0.2:
 					step_interval = (int)(val_interval / 0.2)
-					for x in range(step_interval):
+					print(step_interval)
+					for x in range(0, step_interval):
 						self.serial_port.write("m")
 						self.step_count += 1
 
