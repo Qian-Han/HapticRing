@@ -53,6 +53,10 @@ class motor(object):
 			if val >= 2.0 and val <= 180.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
+
+				if(val < 2.0)
+					self.val = 2.0
+
 				val_interval = val - self.val
 
 				if val_interval >=3.0:
@@ -82,6 +86,9 @@ class motor(object):
 			if val >= 15.0 and val <= 20.0:
 				if self.tick_step == 0:
 					self.tick_step = 1
+
+				if(val < 15.2)
+					self.val = 15.0
 
 				val_interval = val - self.val
 
