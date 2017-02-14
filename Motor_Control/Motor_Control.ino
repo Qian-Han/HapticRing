@@ -114,16 +114,16 @@ void move(int motor, int speed, int direction) {  // Motor moves function
 }
 
 void getReady(){    
-  move(1,testspeed,0);
-  delay(getReadyTime);
-  move(1,0,0);
+  minimumStepDownL();
+  minimumStepDownM();
+  minimumStepDownS();
   
 }
 
 void reset(){    
-  move(1,testspeed,1);
-  delay(getReadyTime);
-  move(1,0,0);
+  minimumStepUpL();
+  minimumStepUpM();
+  minimumStepUpS();
 }
 
 
