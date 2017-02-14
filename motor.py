@@ -54,8 +54,8 @@ class motor(object):
 				if self.spring_step == 0:
 					self.spring_step = 1
 
-				if val < 2.0:
-					self.val = 2.0
+				#if val < 2.0:
+				#	self.val = 2.0
 
 				val_interval = val - self.val
 
@@ -79,7 +79,7 @@ class motor(object):
 
 					self.step_count = 0
 
-				self.val = val
+				self.val = 2.0#val
 	
 
 		elif self.trigger_state == 1: #tick
@@ -87,8 +87,8 @@ class motor(object):
 				if self.tick_step == 0:
 					self.tick_step = 1
 
-				if val < 15.2:
-					self.val = 15.0
+				#if val < 15.2:
+				#	self.val = 15.0
 
 				val_interval = val - self.val
 
@@ -111,7 +111,7 @@ class motor(object):
 
 					self.step_count = 0
 
-				self.val = val
+				self.val = 15.0#val
 
 		else:
 			self.val = val
