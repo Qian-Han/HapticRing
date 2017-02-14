@@ -141,8 +141,8 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
-hard_peak = 800
-hard_valley = 100
+hard_peak = 700
+hard_valley = 300
 
 temp_peak = hard_peak
 temp_valley = hard_valley
@@ -491,7 +491,7 @@ def AddValue(serial_port, val):
 
 
     elif topanddown == -2:
-        filter_valleys = detect_peaks(peak_list, mph=-101, mpd=20, threshold=0, edge='falling',
+        filter_valleys = detect_peaks(peak_list, mph=-(hard_valley-1), mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
@@ -521,7 +521,7 @@ def AddValue(serial_port, val):
     if running and running_mode == 1: #auto reset
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
-    if running_mode == 2:  #no reset
+    if running_mode == 2 and firstTopOrBottom:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
 
         if total_angle > 360:
