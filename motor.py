@@ -62,7 +62,7 @@ class motor(object):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
 
-					self.val = val
+					self.val = self.val + step_interval * 3.0
 
 					#print(self.val)
 
@@ -92,7 +92,7 @@ class motor(object):
 						self.serial_port.write("m")
 						self.step_count += 1
 
-					self.val = val
+					self.val = self.val + step_interval * 0.2
 					#print(self.val)
 
 			else:
