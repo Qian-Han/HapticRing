@@ -56,14 +56,14 @@ class motor(object):
 				val_interval = val - self.val
 
 				if val_interval >=3.0:
-				
-					self.serial_port.write("m")  #step down
-					#print("motor move")
-					self.step_count += 1
+					step_interval = (int)(val_interval / 3.0)
+					for x in range(step_interval):
+						self.serial_port.write("m")  #step down
+						self.step_count += 1
 
 					self.val = val
 
-					print(self.val)
+					#print(self.val)
 
 			else:
 				if self.spring_step == 1:
@@ -85,11 +85,13 @@ class motor(object):
 				val_interval = val - self.val
 
 				if val_interval >= 0.2:
-					self.serial_port.write("m")
-					self.step_count += 1
+					step_interval = (int)(val_interval / 0.2)
+					for x in range(step_interval):
+						self.serial_port.write("m")
+						self.step_count += 1
 
 					self.val = val
-					print(self.val)
+					#print(self.val)
 
 			else:
 				if self.tick_step == 1:
