@@ -1,6 +1,7 @@
 import serial
 import numpy as np
 from threading import Thread
+import time
 
 class motor(Thread):
 	
@@ -56,7 +57,7 @@ class motor(Thread):
 	def get_angle(self, val):
 		#print(val)
 		if self.trigger_state == 2: #spring
-			if val >= 2.0 and val <= 180.0:
+			if val >= 20.0 and val <= 180.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
 
@@ -65,14 +66,14 @@ class motor(Thread):
 
 				val_interval = val - self.val
 
-				if val_interval >=3.0:
-					step_interval = (int)(val_interval / 3.0)
+				if val_interval >=4.0:
+					step_interval = (int)(val_interval / 4.0)
 					print(step_interval)
 					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
 
-					self.val = self.val + step_interval * 3.0
+					self.val = self.val + step_interval * 4.0
 
 					#print(self.val)
 
@@ -82,10 +83,11 @@ class motor(Thread):
 					print(self.step_count)
 					for x in range(0, self.step_count):
 						self.serial_port.write("p")
+						time.sleep(3)
 
 					self.step_count = 0
 
-				self.val = 2.0#val
+				self.val = 20.0#val
 	
 
 		elif self.trigger_state == 1: #tick
