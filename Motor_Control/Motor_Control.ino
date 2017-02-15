@@ -29,6 +29,7 @@ void setup() {
 void loop(){
   
   if(Serial.available()>0){
+  
     
     state = Serial.read();          
     
@@ -115,15 +116,20 @@ void move(int motor, int speed, int direction) {  // Motor moves function
 
 void getReady(){    
   minimumStepDownL();
+  
+  //minimumStepDownL();
   minimumStepDownM();
   minimumStepDownS();
   
 }
 
-void reset(){    
-  minimumStepUpL();
-  minimumStepUpM();
-  minimumStepUpS();
+void reset(){   
+  for(int i = 0; i< 3; i++){ 
+    minimumStepUpL();
+  }
+  for(int i = 0; i< 3; i++){ 
+    minimumStepUpS();
+  }
 }
 
 

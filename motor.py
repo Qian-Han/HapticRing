@@ -18,6 +18,7 @@ class motor(Thread):
 		self.ready_to_stop_sensor = 180
 		self.tick_step = 0
 		self.spring_step = 0
+		self.is_ready = 0
 		self.step_count = 0
 
 	def close(self):
@@ -47,6 +48,7 @@ class motor(Thread):
 	def spring(self, event):
 		self.trigger_state =2
 		self.serial_port.write("g")	
+		self.is_ready = 1
 		self.step_count = 0
 		self.spring_step = 0
 		print(self.trigger_state)
@@ -57,7 +59,12 @@ class motor(Thread):
 	def get_angle(self, val):
 		#print(val)
 		if self.trigger_state == 2: #spring
-			if val >= 20.0 and val <= 180.0:
+			if val >=2.0 and val < 20.0 and self.is_ready == 0:
+				self.serial_port.write("g")
+				self.is_ready = 1
+
+
+			if val >= 20.0 and val <= 200.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
 
@@ -81,9 +88,10 @@ class motor(Thread):
 				if self.spring_step == 1:
 					self.spring_step = 0
 					print(self.step_count)
-					for x in range(0, self.step_count):
-						self.serial_port.write("p")
-						time.sleep(3)
+					#for x in range(0, self.step_count):
+					self.serial_port.write("r")
+					self.is_ready = 0
+						#time.sleep(0.015)
 
 					self.step_count = 0
 
