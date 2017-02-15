@@ -141,7 +141,7 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
-hard_peak = 700
+hard_peak = 680
 hard_valley = 300
 
 temp_peak = hard_peak
@@ -604,13 +604,14 @@ def serial_read():
     except ValueError:
         pass
 
-    print('existing...')
+    
     """
     while serial_port.inWaiting():
         read_val = serial_port.read(serial_port.inWaiting())
         print("Read:%s" % (binascii.hexlify(read_val)))
     """
     serial_port.close()
+    print('existing...')
     exit()
 
 
@@ -627,10 +628,14 @@ def main():
     t = threading.Thread(target=serial_read)
     t.start()
 
+    mMotor.start()
+
     def handle_close(evt):
+        mMotor.close()
+        mMotor.join()
         t.do_run = False
         t.join()
-        mMotor.close()
+
 
 
     def press(event):

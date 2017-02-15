@@ -1,10 +1,16 @@
 import serial
 import numpy as np
+from threading import Thread
 
-class motor(object):
+class motor(Thread):
+	
+		
 
 	def __init__(self):
+		Thread.__init__(self)
+
 		self.serial_port = serial.Serial(port='/dev/tty.usbmodem1421', baudrate=115200)
+
 		self.trigger_state = 0
 		self.val = 0
 		self.ready_to_stop_motor = 90
