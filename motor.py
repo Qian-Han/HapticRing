@@ -21,6 +21,10 @@ class motor(Thread):
 		self.is_ready = 0
 		self.step_count = 0
 
+		self.knob_lift_ang = [80.0, 170.0, 260.0, 350.0]
+		self.knob_down_ang = [90.0, 180.0, 270.0, 0.0]
+		self.knob_ind = 0
+
 	def close(self):
 		self.serial_port.close()
 
@@ -58,6 +62,7 @@ class motor(Thread):
 		self.serial_port.write('k')
 		self.is_ready = 1
 		self.knob_step_on = 1
+		self.knob_ind = 0
 		print(self.trigger_state)
 
 	def get_ready(self):
@@ -152,7 +157,17 @@ class motor(Thread):
 
 
 		elif self.trigger_state == 3: #knob
-			if self.knob_step_on == 
+			if self.knob_step_on == 1 and val > self.knob_lift_ang[self.knob_ind]:
+				val.serial_port.write("n") #lift up
+				self.knob_step_on = 0
+			elif self.knob_step_on == 0 and val > self.knob_down_ang[self.knob_ind]:
+				val.serial_port.write("b") #put down
+				self.knob_step_on = 1
+				self.knob_ind += 1
+				if self.knob_ind == 4:
+					self.knob_ind = 0 
+
+
 
 
 
