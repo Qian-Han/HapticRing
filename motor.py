@@ -20,7 +20,8 @@ class motor(Thread):
 		self.spring_step = 0
 		self.is_ready = 0
 		self.step_count = 0
-
+		
+		self.knob_step_on = 0
 		self.knob_lift_ang = [80.0, 170.0, 260.0, 350.0]
 		self.knob_down_ang = [90.0, 180.0, 270.0, 0.0]
 		self.knob_ind = 0
