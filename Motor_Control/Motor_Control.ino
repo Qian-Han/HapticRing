@@ -61,6 +61,10 @@ void loop(){
       knobStepOn();
       break;
 
+      case 'l':
+      tukStepOn();
+      break;
+
 
       case 'r':                      
       reset();
@@ -69,6 +73,21 @@ void loop(){
       case 'y':
       tickReset();
       break;
+
+      case 'b':
+      knobDown();
+      break;
+
+      case 'n':
+      knobUp();
+      break;
+
+      case 'v':
+      tukUp();
+      break;
+
+      case ',':
+      tukDown();
       
 
       case 'm':                      
@@ -130,14 +149,23 @@ void getReady(){
   
 }
 
+
+
 void knobStepOn(){    
-  minimumStepDownL();
-  minimumStepDownL();
-  minimumStepDownM();
-  minimumStepDownS();
-  minimumStepDownS();
+  for(int i = 0; i< 4; i++)
+  {
+    minimumStepDownL();   
+  } 
 }
 
+void tukStepOn(){    
+  for(int i = 0; i< 3; i++)
+  {
+    minimumStepDownL();   
+  } 
+  minimumStepDownM();  
+  minimumStepDownM();  
+}
 
 
 void reset(){   
@@ -157,6 +185,35 @@ void tickReset(){
     minimumStepUpS();
   }
 }
+
+void knobDown(){
+  for(int i = 0; i< 2; i++){ 
+    minimumStepDownL();
+  }
+  minimumStepDownXS();
+}
+
+void knobUp(){
+  for(int i = 0; i< 2; i++){ 
+    minimumStepUpL();
+  }
+  //minimumStepUpM();
+}
+
+void tukUp(){
+  for(int i = 0; i< 2; i++){ 
+    minimumStepUpL();
+  }
+  minimumStepUpM();
+}
+
+void tukDown(){
+  for(int i = 0; i< 2; i++){ 
+    minimumStepDownL();
+  }
+  minimumStepDownM();
+}
+
 
 
 void minimumStepUpXS(){    

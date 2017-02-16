@@ -524,7 +524,7 @@ def AddValue(serial_port, val):
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
 
-        if total_angle >= 360:
+        if total_angle > 360:
             total_angle = 0
             base_angle = 0
             temp_angle = 0
@@ -651,15 +651,15 @@ def main():
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
 
-    axreset = plt.axes([0.59, 0.01, 0.1, 0.05])
+    axtuk = plt.axes([0.59, 0.01, 0.1, 0.05])
     axtick = plt.axes([0.7, 0.01, 0.1, 0.05])
     axspring = plt.axes([0.81, 0.01, 0.1, 0.05])
     axknob = plt.axes([0.48, 0.01, 0.1, 0.05])
     axtune_up = plt.axes([0.1, 0.01, 0.1, 0.05])
     axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
 
-    breset = Button(axreset, 'Reset')
-    breset.on_clicked(reset)
+    btuk = Button(axtuk, 'Tuk')
+    btuk.on_clicked(mMotor.tuk)
 
     btick = Button(axtick, 'Tick')
     btick.on_clicked(mMotor.tick)

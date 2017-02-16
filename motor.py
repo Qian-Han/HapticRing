@@ -22,9 +22,20 @@ class motor(Thread):
 		self.step_count = 0
 
 		self.knob_step_on = 0
-		self.knob_lift_ang = [80.0, 170.0, 260.0, 350.0]
-		self.knob_down_ang = [90.0, 180.0, 270.0, 0]
+		# self.knob_lift_ang = [35.0, 95.0, 155.0, 215.0, 275.0, 335.0]
+		# self.knob_down_ang = [55.0, 115.0, 175.0, 235.0, 295.0, 355.0]
+		self.knob_lift_ang = [45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0, 0.0]
+		self.knob_down_ang = [65.0, 110.0, 155.0, 200.0, 245.0, 290.0, 335.0, 20.0]
 		self.knob_ind = 0
+
+
+		self.tuk_step_on = 0
+		# self.tuk_lift_ang = [35.0, 95.0, 155.0, 215.0, 275.0, 335.0]
+		# self.tuk_down_ang = [55.0, 115.0, 175.0, 235.0, 295.0, 355.0]
+		self.tuk_lift_ang = [45.0, 105.0, 165.0, 225.0, 285.0, 345.0]
+		self.tuk_down_ang = [55.0, 115.0, 175.0, 235.0, 295.0, 355.0]
+		self.tuk_ind = 0
+
 
 	def close(self):
 		self.serial_port.close()
@@ -65,6 +76,15 @@ class motor(Thread):
 		self.knob_step_on = 1
 		self.knob_ind = 0
 		print(self.trigger_state)
+
+	def tuk(self, event):
+		self.trigger_state = 4
+		self.serial_port.write('l')
+		self.is_ready = 1
+		self.tuk_step_on = 1
+		self.tuk_ind = 0
+		print(self.trigger_state)
+
 
 	def get_ready(self):
 		self.serial_port.write("g")
@@ -149,10 +169,6 @@ class motor(Thread):
 					self.step_count = 0
 
 				self.val = 15.0#val
-			
-
-		
-
 
 
 
@@ -165,8 +181,21 @@ class motor(Thread):
 				self.serial_port.write("b") #put down
 				self.knob_step_on = 1
 				self.knob_ind += 1
-				if self.knob_ind == 4:
+				if self.knob_ind == len(self.knob_lift_ang):
 					self.knob_ind = 0 
+
+
+
+		elif self.trigger_state == 4: #tuk
+			if self.tuk_step_on == 1 and val > self.tuk_lift_ang[self.tuk_ind] and val < self.tuk_lift_ang[self.tuk_ind] + 2.0:
+				self.serial_port.write(",") #lift down
+				self.tuk_step_on = 0
+			elif self.tuk_step_on == 0 and val > self.tuk_down_ang[self.tuk_ind] and self.tuk_down_ang[self.tuk_ind] + 2.0:
+				self.serial_port.write("v") #put up
+				self.tuk_step_on = 1
+				self.tuk_ind += 1
+				if self.tuk_ind == len(self.tuk_lift_ang):
+					self.tuk_ind = 0 
 
 
 
