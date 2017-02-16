@@ -57,11 +57,18 @@ void loop(){
       getReady();
       break;
 
+      case 'k':
+      knobStepOn();
+      break;
+
+
       case 'r':                      
       reset();
       break;
 
-
+      case 'y':
+      tickReset();
+      break;
       
 
       case 'm':                      
@@ -123,8 +130,27 @@ void getReady(){
   
 }
 
+void knobStepOn(){    
+  minimumStepDownL();
+  minimumStepDownL();
+  minimumStepDownM();
+  minimumStepDownS();
+  minimumStepDownS();
+}
+
+
+
 void reset(){   
   for(int i = 0; i< 3; i++){ 
+    minimumStepUpL();
+  }
+  for(int i = 0; i< 3; i++){ 
+    minimumStepUpS();
+  }
+}
+
+void tickReset(){   
+  for(int i = 0; i< 5; i++){ 
     minimumStepUpL();
   }
   for(int i = 0; i< 3; i++){ 

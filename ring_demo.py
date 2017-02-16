@@ -654,6 +654,7 @@ def main():
     axreset = plt.axes([0.59, 0.01, 0.1, 0.05])
     axtick = plt.axes([0.7, 0.01, 0.1, 0.05])
     axspring = plt.axes([0.81, 0.01, 0.1, 0.05])
+    axknob = plt.axes([0.48, 0.01, 0.1, 0.05])
     axtune_up = plt.axes([0.1, 0.01, 0.1, 0.05])
     axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
 
@@ -664,6 +665,9 @@ def main():
     btick.on_clicked(mMotor.tick)
     bspring = Button(axspring, 'Spring')
     bspring.on_clicked(mMotor.spring)
+    bknob = Button(axknob, 'Knob')
+    bknob.on_clicked(mMotor.knob)
+
     btune_up = Button(axtune_up, '+1')
     btune_up.on_clicked(mMotor.tune_up)
     btune_down = Button(axtune_down, '-1')
