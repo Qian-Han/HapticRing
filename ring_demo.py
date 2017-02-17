@@ -251,9 +251,7 @@ def AddValue(serial_port, val):
 
         std_value = detectRunning(prev_val)
 
-        #print(std_value)
-
-        #print(std_value)
+        print(std_value)
         
         if std_value > 10 or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
@@ -324,7 +322,7 @@ def AddValue(serial_port, val):
 
                     reading_direction = 0  #got direction info
 
-                    print(running_clockwise)
+                    #print(running_clockwise)
                 
                 
                 
@@ -337,7 +335,7 @@ def AddValue(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    print("             %s"%a_sensor_state)
+                    #print("             %s"%a_sensor_state)
 
                     """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
@@ -623,7 +621,7 @@ def AddValue_Ch1(val):
 
         std_value_ch1 = detectRunning(prev_val_ch1)
 
-        #print("            %s" %(std_value_ch1))
+        print("            %s" %(std_value_ch1))
 
         if std_value_ch1 > 10:  #running
             if running_ch1 == False:
