@@ -323,6 +323,9 @@ def AddValue(serial_port, val):
                             #topanddown = -1
 
                 reading_direction = 0  #got direction info
+
+                print(running_clockwise)
+                
                 
 
         else:
@@ -332,6 +335,8 @@ def AddValue(serial_port, val):
                 if running == True:
                     running = False
                     reading_direction = 1 #waiting for diretion info
+
+                    print("             %s"%a_sensor_state)
 
                     """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
@@ -591,8 +596,7 @@ def AddValue(serial_port, val):
 
     #print(peak_x)
 
-    print(running_clockwise)
-    print("             %s"%a_sensor_state)
+    
 
 
 
