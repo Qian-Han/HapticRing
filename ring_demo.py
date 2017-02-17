@@ -261,12 +261,15 @@ def AddValue(serial_port, val):
 
             #wait for span/2 frames
             if direction_test_timer < predict_span/2:
-                direction_test_timer = direction_test_timer + 1
+                direction_test_timer += 1
                 if direction_test_timer == predict_span/2:
 
                     if a_sensor_state == 0:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
+
+                        print("ch1 dir: %s"%dir_ch1)
+
                         if dir_ch1 == 1:
                             running_clockwise = -1
                             #a_sensor_state = 3
@@ -278,6 +281,9 @@ def AddValue(serial_port, val):
                         a_sensor_state = 1
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
+
+                        print("ch0 dir: %s"%dir_ch0)
+
                         if dir_ch0 == 1:
                             running_clockwise = -1
                             #topanddown = 1
@@ -288,6 +294,8 @@ def AddValue(serial_port, val):
                     elif a_sensor_state == 2:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
+                        print("ch1 dir: %s"%dir_ch1)
+
                         if dir_ch1 == 1:
                             running_clockwise = 1
                             #a_sensor_state = 3
@@ -299,6 +307,9 @@ def AddValue(serial_port, val):
                         a_sensor_state = 3
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
+
+                        print("ch0 dir: %s"%dir_ch0)
+                        
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
@@ -554,8 +565,8 @@ def AddValue(serial_port, val):
 
     #print(peak_x)
 
-    print(running_clockwise)
-    print("             %s"%a_sensor_state)
+    #print(running_clockwise)
+    #print("             %s"%a_sensor_state)
 
 
 
