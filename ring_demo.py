@@ -322,10 +322,10 @@ def AddValue(serial_port, val):
                             running_clockwise = -1
                             #topanddown = -1
 
-                reading_direction = 0  #got direction info
+                    reading_direction = 0  #got direction info
 
-                print(running_clockwise)
-                print("count%s"%direction_test_timer)
+                    print(running_clockwise)
+                
                 
                 
 
