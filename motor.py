@@ -121,7 +121,7 @@ class motor(Thread):
 
 				if val_interval >=4.0:
 					step_interval = (int)(val_interval / 4.0)
-					print(step_interval)
+					#print(step_interval)
 					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
@@ -133,7 +133,7 @@ class motor(Thread):
 			else:
 				if self.spring_step == 1:
 					self.spring_step = 0
-					print(self.step_count)
+					#print(self.step_count)
 					#for x in range(0, self.step_count):
 					self.serial_port.write("r")
 					self.is_ready = 0
@@ -161,7 +161,7 @@ class motor(Thread):
 
 				if val_interval >=0.75:
 					step_interval = (int)(val_interval / 0.75)
-					print(step_interval)
+					#print(step_interval)
 					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
@@ -173,7 +173,7 @@ class motor(Thread):
 			elif (val > 46 and val < 360) or (val < 14.7 and val > 0):
 				if self.spring_step == 1:
 					self.spring_step = 0
-					print(self.step_count)
+					#print(self.step_count)
 					#for x in range(0, self.step_count):
 					self.serial_port.write("y")
 					self.is_ready = 0
@@ -212,7 +212,7 @@ class motor(Thread):
 
 		
 
-		elif self.trigger_state == 5: #wall
+		#elif self.trigger_state == 5: #wall
 			# if self.tuk_step_on == 1 and val > self.tuk_lift_ang[self.tuk_ind] and val < self.tuk_lift_ang[self.tuk_ind] + 2.0:
 			# 	self.serial_port.write(",") #lift down
 			# 	self.tuk_step_on = 0

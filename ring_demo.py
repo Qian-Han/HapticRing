@@ -262,24 +262,24 @@ def AddValue(serial_port, val):
             #wait for span/2 frames
             if direction_test_timer < predict_span/2:
                 direction_test_timer = direction_test_timer + 1
-                if direction_test_timer == predict_span:
+                if direction_test_timer == predict_span/2:
 
                     if a_sensor_state == 0:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
                         if dir_ch1 == 1:
-                            running_clockwise = 1 #-1
-                            a_sensor_state = 3
+                            running_clockwise = -1
+                            #a_sensor_state = 3
                         elif dir_ch1 == -1:
                             running_clockwise = 1
-                            a_sensor_state = 1
+                            #a_sensor_state = 1
 
                     elif a_sensor_state == 1:
                         a_sensor_state = 1
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
                         if dir_ch0 == 1:
-                            running_clockwise = 1 #-1
+                            running_clockwise = -1
                             #topanddown = 1
                         elif dir_ch0 == -1:
                             running_clockwise = 1
@@ -290,11 +290,10 @@ def AddValue(serial_port, val):
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
                         if dir_ch1 == 1:
                             running_clockwise = 1
-                            a_sensor_state = 3
+                            #a_sensor_state = 3
                         elif dir_ch1 == -1:
-                            running_clockwise = 1 #-1
-
-                            a_sensor_state = 1
+                            running_clockwise = -1
+                            #a_sensor_state = 1
 
                     elif a_sensor_state == 3:
                         a_sensor_state = 3
@@ -303,7 +302,7 @@ def AddValue(serial_port, val):
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
-                            running_clockwise = 1 #-1
+                            running_clockwise = -1
                             #topanddown = -1
                 
 
@@ -423,7 +422,10 @@ def AddValue(serial_port, val):
             goingup = False
             reachingPeak = False
 
-            a_sensor_state = 1
+            if running_clockwise == 1:
+                a_sensor_state = 1
+            elif running_clockwise == -1:
+                a_sensor_state = 3
 
     elif topanddown == -1:
 
@@ -501,7 +503,11 @@ def AddValue(serial_port, val):
             topanddown = 1
             goingup = True
             reachingPeak = False
-            a_sensor_state = 3
+
+            if running_clockwise == 1:
+                a_sensor_state = 3
+            elif running_clockwise == -1:
+                a_sensor_state = 1
 
             #print(topanddown)
 
@@ -548,7 +554,8 @@ def AddValue(serial_port, val):
 
     #print(peak_x)
 
-    #print(running_clockwise)
+    print(running_clockwise)
+    print("             %s"%a_sensor_state)
 
 
 
