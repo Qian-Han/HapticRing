@@ -255,7 +255,7 @@ def AddValue(serial_port, val):
 
         #print(std_value)
         
-        if std_value > 10:  # predict as running
+        if std_value > 10 or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
             if running == False:
                 running = True
@@ -325,6 +325,7 @@ def AddValue(serial_port, val):
                 reading_direction = 0  #got direction info
 
                 print(running_clockwise)
+                print("count%s"%direction_test_timer)
                 
                 
 
