@@ -158,7 +158,7 @@ running = False
 prev_val = [] #5 frames
 diff_prev_val = []
 r_count = 0
-
+running_threshold = 5.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
@@ -229,6 +229,7 @@ def AddValue(serial_port, val):
     global running_ch1
     global predict_span
     global r_count
+    global running_threshold
     
     ch0_buf.append(val)
     ch0_buf.popleft()
@@ -251,9 +252,9 @@ def AddValue(serial_port, val):
 
         std_value = detectRunning(prev_val)
 
-        print(std_value)
+        #print(std_value)
         
-        if std_value > 10 or running_ch1 == True:  # predict as running, a sensor or b sensor
+        if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
             if running == False:
                 running = True
@@ -322,7 +323,7 @@ def AddValue(serial_port, val):
 
                     reading_direction = 0  #got direction info
 
-                    #print(running_clockwise)
+                    print(running_clockwise)
                 
                 
                 
@@ -335,7 +336,7 @@ def AddValue(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    #print("             %s"%a_sensor_state)
+                    print("             %s"%a_sensor_state)
 
                     """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
@@ -611,6 +612,7 @@ def AddValue_Ch1(val):
     global prev_val_ch1
     global running_ch1
     global predict_span
+    global running_threshold
     
     ch1_buf.append(val)
     ch1_buf.popleft()
@@ -621,9 +623,9 @@ def AddValue_Ch1(val):
 
         std_value_ch1 = detectRunning(prev_val_ch1)
 
-        print("            %s" %(std_value_ch1))
+        #print("            %s" %(std_value_ch1))
 
-        if std_value_ch1 > 10:  #running
+        if std_value_ch1 > running_threshold:  #running
             if running_ch1 == False:
                 running_ch1 = True
         else:
