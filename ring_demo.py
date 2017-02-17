@@ -577,6 +577,12 @@ def AddValue(serial_port, val):
             base_angle = 0
             temp_angle = 0
 
+        if total_angle < 0:
+            total_angle = 360
+            base_angle = 360
+            temp_angle = 0
+
+
         #if mMotor.trigger_state > 0:
         mMotor.get_angle(total_angle)
 
