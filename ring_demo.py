@@ -165,7 +165,7 @@ direction_test_timer = 0
 reading_direction = 1
 
 
-predict_span = 200
+predict_span = 20
 
 running_mode = 2 # 1 -> reset  2-> no reset
 
