@@ -88,7 +88,15 @@ void loop(){
 
       case ',':
       tukDown();
-      
+      break;
+
+      case '/':
+      wallUp();
+      break;
+
+      case '.':
+      wallDown();
+      break;
 
       case 'm':                      
       minimumStepDownXS();
@@ -212,6 +220,18 @@ void tukDown(){
     minimumStepDownL();
   }
   minimumStepDownM();
+}
+
+void wallUp(){
+  for(int i = 0; i< 3; i++){ 
+    minimumStepUpL();
+  }
+}
+
+void wallDown(){
+  for(int i = 0; i< 3; i++){ 
+    minimumStepDownL();
+  }
 }
 
 

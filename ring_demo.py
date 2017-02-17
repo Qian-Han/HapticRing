@@ -158,14 +158,14 @@ running = False
 prev_val = [] #5 frames
 diff_prev_val = []
 r_count = 0
-running_threshold = 5.0
+running_threshold = 7.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
 reading_direction = 1
 
 
-predict_span = 20
+predict_span = 10
 
 running_mode = 2 # 1 -> reset  2-> no reset
 
@@ -323,7 +323,11 @@ def AddValue(serial_port, val):
 
                     reading_direction = 0  #got direction info
 
+                    running_clockwise = 1
                     print(running_clockwise)
+
+
+
                 
                 
                 

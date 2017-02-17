@@ -36,6 +36,10 @@ class motor(Thread):
 		self.tuk_down_ang = [55.0, 115.0, 175.0, 235.0, 295.0, 355.0]
 		self.tuk_ind = 0
 
+		self.wall_step_on = 0
+		self.wall_ang = [270.0, 90.0]
+
+
 
 	def close(self):
 		self.serial_port.close()
@@ -87,13 +91,10 @@ class motor(Thread):
 
 
 
-
 	def wall(self, event):
 		self.trigger_state = 5
-		self.serial_port.write('.')
-		# self.is_ready = 1
-		# self.tuk_step_on = 1
-		# self.tuk_ind = 0
+		self.serial_port.write("g")	
+		self.wall_step = 0
 		print(self.trigger_state)
 
 
@@ -212,19 +213,24 @@ class motor(Thread):
 
 		
 
-		#elif self.trigger_state == 5: #wall
-			# if self.tuk_step_on == 1 and val > self.tuk_lift_ang[self.tuk_ind] and val < self.tuk_lift_ang[self.tuk_ind] + 2.0:
-			# 	self.serial_port.write(",") #lift down
-			# 	self.tuk_step_on = 0
-			# elif self.tuk_step_on == 0 and val > self.tuk_down_ang[self.tuk_ind] and self.tuk_down_ang[self.tuk_ind] + 2.0:
-			# 	self.serial_port.write("v") #put up
-			# 	self.tuk_step_on = 1
-			# 	self.tuk_ind += 1
-			# 	if self.tuk_ind == len(self.tuk_lift_ang):
-			# 		self.tuk_ind = 0 
+		elif self.trigger_state == 5: #wall
+			# if (val >= self.wall_ang[1] and val <= self.wall_ang[1] + 2) or (val >= self.wall_ang[0] - 2 and val <= self.wall_ang[0])
+			if self.wall_step_on == 0 and val > self.wall_ang[1] and val <= self.wall_ang[1] + 10:
+				self.serial_port.write(".") #lift down
+				self.wall_step_on = 1
+			elif self.wall_step_on == 0 and val >= self.wall_ang[0] - 10  and val <= self.wall_ang[0]:
+				self.serial_port.write(".") #lift down
+				self.wall_step_on = 1
 
 
 
+			elif self.wall_step_on == 1 and val < self.wall_ang[1] and val >= self.wall_ang[1] - 10:
+				self.serial_port.write("/") #rise up
+				self.wall_step_on = 0
+
+			elif self.wall_step_on == 1 and val > self.wall_ang[0] and val <= self.wall_ang[0] + 10:
+				self.serial_port.write("/") #rise up
+				self.wall_step_on = 0
 
 
 
