@@ -262,7 +262,8 @@ def AddValue(serial_port, val):
                 direction_test_timer = 0
 
             #wait for span/2 frames
-            if direction_test_timer < predict_span / 2:
+            #reading_direction must be 1
+            if direction_test_timer < predict_span / 2: #10
                 direction_test_timer += 1
                 if direction_test_timer == predict_span / 2:
 
@@ -409,12 +410,16 @@ def AddValue(serial_port, val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
+
+                a_sensor_state = 0
                 #initial closewise, see sensor 2
+                """
                 dir_ch1 = detectMovingDirection(prev_val_ch1)
                 if dir_ch1 == 1:
-                    running_clockwise = 1 #-1
+                    running_clockwise = -1
                 elif dir_ch1 == -1:
                     running_clockwise = 1
+                """
 
             else:
                 base_angle += (20*running_clockwise)
@@ -499,12 +504,17 @@ def AddValue(serial_port, val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
+
+                a_sensor_state = 2
                 #initial closewise, see sensor 2
+
+                """
                 dir_ch1 = detectMovingDirection(prev_val_ch1)
                 if dir_ch1 == 1:
                     running_clockwise = 1
                 elif dir_ch1 == -1:
                     running_clockwise = 1 #-1
+                """
 
             else:
                 base_angle += (20*running_clockwise)
