@@ -309,7 +309,7 @@ def AddValue(serial_port, val):
                         dir_ch0 = detectMovingDirection(prev_val)
 
                         print("ch0 dir: %s"%dir_ch0)
-                        
+
                         if dir_ch0 == 1:
                             running_clockwise = 1
                         elif dir_ch0 == -1:
@@ -417,6 +417,8 @@ def AddValue(serial_port, val):
 
             a_sensor_state = 0
 
+            print("sensor_state: %s" % a_sensor_state)
+
 
     elif topanddown == 2:  #detect the second top
         filter_peaks = detect_peaks(peak_list, mph=hard_peak-1, mpd=20, threshold=0, edge='falling',
@@ -501,6 +503,8 @@ def AddValue(serial_port, val):
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
             a_sensor_state = 2
+
+            print("sensor_state: %s" % a_sensor_state)
 
 
     elif topanddown == -2:
