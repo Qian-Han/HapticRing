@@ -273,7 +273,7 @@ def AddValue(serial_port, val):
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
 
-                        print("ch1 dir: %s"%dir_ch1)
+                        #print("ch1 dir: %s"%dir_ch1)
 
                         if dir_ch1 == 1:
                             running_clockwise = -1
@@ -287,7 +287,7 @@ def AddValue(serial_port, val):
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
 
-                        print("ch0 dir: %s"%dir_ch0)
+                        #print("ch0 dir: %s"%dir_ch0)
 
                         if dir_ch0 == 1:
                             running_clockwise = -1
@@ -299,7 +299,7 @@ def AddValue(serial_port, val):
                     elif a_sensor_state == 2:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
-                        print("ch1 dir: %s"%dir_ch1)
+                        #print("ch1 dir: %s"%dir_ch1)
 
                         if dir_ch1 == 1:
                             running_clockwise = 1
@@ -313,7 +313,7 @@ def AddValue(serial_port, val):
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
 
-                        print("ch0 dir: %s"%dir_ch0)
+                        #print("ch0 dir: %s"%dir_ch0)
 
                         if dir_ch0 == 1:
                             running_clockwise = 1
@@ -426,7 +426,7 @@ def AddValue(serial_port, val):
             if reading_direction == 0:
                 a_sensor_state = 0
 
-            print("sensor_state: %s" % a_sensor_state)
+            #print("sensor_state: %s" % a_sensor_state)
 
 
     elif topanddown == 2:  #detect the second top
@@ -515,7 +515,7 @@ def AddValue(serial_port, val):
             if reading_direction == 0:
                 a_sensor_state = 2
 
-            print("sensor_state: %s" % a_sensor_state)
+            #print("sensor_state: %s" % a_sensor_state)
 
 
     elif topanddown == -2:
@@ -581,8 +581,8 @@ def AddValue(serial_port, val):
 
     #print(peak_x)
 
-    #print(running_clockwise)
-    #print("             %s"%a_sensor_state)
+    print(running_clockwise)
+    print("             %s"%a_sensor_state)
 
 
 
