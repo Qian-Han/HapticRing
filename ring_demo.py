@@ -651,12 +651,16 @@ def main():
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
 
+    axwall = plt.axes([0.37, 0.01, 0.1, 0.05])
     axtuk = plt.axes([0.59, 0.01, 0.1, 0.05])
     axtick = plt.axes([0.7, 0.01, 0.1, 0.05])
     axspring = plt.axes([0.81, 0.01, 0.1, 0.05])
     axknob = plt.axes([0.48, 0.01, 0.1, 0.05])
     axtune_up = plt.axes([0.1, 0.01, 0.1, 0.05])
     axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
+
+    bwall = Button(axwall, 'Wall')
+    bwall.on_clicked(mMotor.wall)
 
     btuk = Button(axtuk, 'Tuk')
     btuk.on_clicked(mMotor.tuk)
