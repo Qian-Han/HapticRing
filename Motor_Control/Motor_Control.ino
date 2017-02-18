@@ -151,7 +151,8 @@ void move(int motor, int speed, int direction) {  // Motor moves function
 void getReady(){    
   minimumStepDownL();
   
-  //minimumStepDownL();
+  minimumStepDownL();
+  //minimumStepDownM();
   minimumStepDownM();
   minimumStepDownS();
   
@@ -177,7 +178,7 @@ void tukStepOn(){
 
 
 void reset(){   
-  for(int i = 0; i< 3; i++){ 
+  for(int i = 0; i< 5; i++){ 
     minimumStepUpL();
   }
   for(int i = 0; i< 3; i++){ 

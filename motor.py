@@ -111,7 +111,7 @@ class motor(Thread):
 				self.is_ready = 1
 
 
-			if val >= 20.0 and val <= 200.0:
+			if val >= 20.0 and val <= 300.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
 
@@ -137,6 +137,7 @@ class motor(Thread):
 					#print(self.step_count)
 					#for x in range(0, self.step_count):
 					self.serial_port.write("r")
+					#self.serial_port.write("r")
 					self.is_ready = 0
 						#time.sleep(0.015)
 
