@@ -98,6 +98,10 @@ void loop(){
       wallDown();
       break;
 
+      case ';':
+      antiSpringReady();
+      break;
+
       case 'm':                      
       minimumStepDownXS();
       break;
@@ -234,6 +238,12 @@ void wallDown(){
     minimumStepDownL();
   }
 }
+
+void antiSpringReady(){
+   for(int i = 0; i< 6; i++){ 
+   minimumStepDownL();
+  }
+  }
 
 
 

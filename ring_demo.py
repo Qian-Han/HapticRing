@@ -706,17 +706,36 @@ def main():
         temp_angle = 0
         total_angle = 0
 
-    fig, (p1, p2) = plt.subplots(2, 1)
+    fig, (p1, p2) = plt.subplots(2, 1, figsize = (16,12), dpi = 80)
+
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
 
-    axwall = plt.axes([0.37, 0.01, 0.1, 0.05])
-    axtuk = plt.axes([0.59, 0.01, 0.1, 0.05])
-    axtick = plt.axes([0.7, 0.01, 0.1, 0.05])
-    axspring = plt.axes([0.81, 0.01, 0.1, 0.05])
-    axknob = plt.axes([0.48, 0.01, 0.1, 0.05])
-    axtune_up = plt.axes([0.1, 0.01, 0.1, 0.05])
-    axtune_down = plt.axes([0.21, 0.01, 0.1, 0.05])
+    axwall = plt.axes([0.4, 0.01, 0.05, 0.05])
+    axtuk = plt.axes([0.35, 0.01, 0.05, 0.05])
+    axtick = plt.axes([0.3, 0.01, 0.05, 0.05])
+    axspring = plt.axes([0.25, 0.01, 0.05, 0.05])
+    axknob = plt.axes([0.2, 0.01, 0.05, 0.05])
+    axtune_up = plt.axes([0.1, 0.01, 0.05, 0.05])
+    axtune_down = plt.axes([0.15, 0.01, 0.05, 0.05])
+    axnoforce = plt.axes([0.45, 0.01, 0.05, 0.05])
+    axforce = plt.axes([0.5, 0.01, 0.05, 0.05])
+    axstop = plt.axes([0.55, 0.01, 0.05, 0.05])
+    axantispring = plt.axes([0.6, 0.01, 0.05, 0.05])
+
+    bnoforce = Button(axnoforce, 'noforce')
+    bnoforce.on_clicked(mMotor.noforce)
+
+    bforce = Button(axforce, 'force')
+    bforce.on_clicked(mMotor.force)
+
+    bstop = Button(axstop, 'stop')
+    bstop.on_clicked(mMotor.stop)
+
+    bantispring = Button(axantispring, 'antispring')
+    bantispring.on_clicked(mMotor.antispring)
+
+
 
     bwall = Button(axwall, 'Wall')
     bwall.on_clicked(mMotor.wall)

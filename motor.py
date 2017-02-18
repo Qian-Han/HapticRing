@@ -98,6 +98,39 @@ class motor(Thread):
 		print(self.trigger_state)
 
 
+	def noforce(self, event):
+		self.trigger_state = 6
+		self.serial_port.write("c")	
+		self.serial_port.write("e")	
+		print(self.trigger_state)
+
+
+	def force(self, event):		
+		self.trigger_state = 7
+		for i in range(0,3):
+			self.serial_port.write("c")	
+		
+		print(self.trigger_state)
+
+
+
+	def stop(self, event):
+		self.trigger_state = 8
+		for i in range(0,7):
+			self.serial_port.write("c")	
+		print(self.trigger_state)
+
+
+	def antispring(self, event):
+		self.trigger_state = 9
+		self.serial_port.write("c")	
+		self.serial_port.write("e")		
+		self.is_ready = 1
+		self.step_count = 0
+		self.antispring_step = 0
+		print(self.trigger_state)
+
+
 
 
 	def get_ready(self):
@@ -235,4 +268,50 @@ class motor(Thread):
 
 
 
+
+
+		elif self.trigger_state == 9: #antispring
+			if val >=2.0 and val < 20.0 and self.is_ready == 0:
+				for x in range(0, 2):
+					self.serial_port.write("g")
+				# self.serial_port.write("c")
+				self.serial_port.write("z")
+				self.is_ready = 1
+
+
+			if val >= 20.0 and val <= 300.0:
+				if self.antispring_step == 0:
+					self.antispring_step = 1
+
+				#if val < 2.0:
+				#	self.val = 2.0
+
+				val_interval = val - self.val
+
+				if val_interval >=4.0:
+					step_interval = (int)(val_interval / 4.0)
+					#print(step_interval)
+					for x in range(0, step_interval):
+						self.serial_port.write("p")  #step on
+						self.step_count += 1
+
+					self.val = self.val + step_interval * 4.0
+
+					#print(self.val)
+
+			else:
+				if self.antispring_step == 1:
+					self.antispring_step = 0
+					#print(self.step_count)
+					#for x in range(0, self.step_count):
+					for x in range(0, 2):
+						self.serial_port.write("e")
+					
+					#self.serial_port.write("r")
+					self.is_ready = 0
+						#time.sleep(0.015)
+
+					self.step_count = 0
+
+				self.val = 20.0#val
 
