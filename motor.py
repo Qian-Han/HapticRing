@@ -109,14 +109,15 @@ class motor(Thread):
 		self.trigger_state = 7
 		for i in range(0,3):
 			self.serial_port.write("c")	
-		
+		self.serial_port.write("z")
+		self.serial_port.write("z")
 		print(self.trigger_state)
 
 
 
 	def stop(self, event):
 		self.trigger_state = 8
-		for i in range(0,7):
+		for i in range(0,8):
 			self.serial_port.write("c")	
 		print(self.trigger_state)
 
@@ -304,7 +305,7 @@ class motor(Thread):
 					self.antispring_step = 0
 					#print(self.step_count)
 					#for x in range(0, self.step_count):
-					for x in range(0, 2):
+					for x in range(0, 1):
 						self.serial_port.write("e")
 					
 					#self.serial_port.write("r")

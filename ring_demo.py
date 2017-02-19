@@ -706,7 +706,7 @@ def main():
         temp_angle = 0
         total_angle = 0
 
-    fig, (p1, p2) = plt.subplots(2, 1, figsize = (16,12), dpi = 80)
+    fig, (p1, p2) = plt.subplots(2, 1, dpi = 80)
 
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
