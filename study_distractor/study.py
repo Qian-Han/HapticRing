@@ -11,12 +11,14 @@ from array import *
 import binascii
 import numpy as np
 from math import *
+from random import randint
 
 import os
 os.environ['PYTHON_EGG_CACHE'] = '/tmp'
 
 import matplotlib
 matplotlib.use('TKAgg')
+matplotlib.rcParams['toolbar'] = 'None'
 
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
@@ -27,10 +29,13 @@ from collections import deque
 #threading
 import threading
 
-from motor import motor
+from s_motor import motor
 from matplotlib.widgets import Button
 
 mMotor = motor()
+
+from s_speech import speech
+
 
 
 axis_span = 1000
@@ -646,7 +651,7 @@ def AddValue_Ch1(val):
 def serial_read():
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=115200)
     
     sx = 0
     try:
@@ -660,6 +665,8 @@ def serial_read():
                 AddValue_Ch1(int(read_val_list[1]))         
 
             #time.sleep(0.1)  # ~200Hz
+
+
     except ValueError:
         pass
 
@@ -669,9 +676,10 @@ def serial_read():
         read_val = serial_port.read(serial_port.inWaiting())
         print("Read:%s" % (binascii.hexlify(read_val)))
     """
+    print("prepare threading exit")
     serial_port.close()
     print('existing...')
-    exit()
+    
 
 
 #############################################################################################
@@ -684,16 +692,25 @@ def main():
     global temp_angle
     global base_angle
 
-    t = threading.Thread(target=serial_read)
-    t.start()
+    #t = threading.Thread(target=serial_read)
+    #t.start()
 
-    mMotor.start()
+    #mMotor.start()
 
-    def handle_close(evt):
-        mMotor.close()
-        mMotor.join()
-        t.do_run = False
-        t.join()
+    #mSpeech = speech()
+    #mSpeech.start()
+
+    def handle_close(event):
+        #mMotor.close()
+        #mMotor.join()
+        #t.do_run = False
+        #t.join()
+
+        #mSpeech.stop()
+        #mSpeech.join()
+
+
+        exit()
 
 
 
@@ -706,59 +723,35 @@ def main():
         temp_angle = 0
         total_angle = 0
 
-    fig, (p1, p2) = plt.subplots(2, 1, dpi = 80)
+    #fig, (p1, p2) = plt.subplots(2, 1, dpi = 80)
+    fig, p1 = plt.subplots()
+    p1.axis("off")
+    fig.canvas.set_window_title('Study Pilot')
 
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
 
-    axwall = plt.axes([0.4, 0.01, 0.05, 0.05])
-    axtuk = plt.axes([0.35, 0.01, 0.05, 0.05])
-    axtick = plt.axes([0.3, 0.01, 0.05, 0.05])
-    axspring = plt.axes([0.25, 0.01, 0.05, 0.05])
-    axknob = plt.axes([0.2, 0.01, 0.05, 0.05])
-    axtune_up = plt.axes([0.1, 0.01, 0.05, 0.05])
-    axtune_down = plt.axes([0.15, 0.01, 0.05, 0.05])
-    axnoforce = plt.axes([0.45, 0.01, 0.05, 0.05])
-    axforce = plt.axes([0.5, 0.01, 0.05, 0.05])
-    axstop = plt.axes([0.55, 0.01, 0.05, 0.05])
-    axantispring = plt.axes([0.6, 0.01, 0.05, 0.05])
 
-    bnoforce = Button(axnoforce, 'noforce')
-    bnoforce.on_clicked(mMotor.noforce)
+    color_pool = ['b', 'g', 'r', 'c', 'm', 'y', 'k'] #7
+    text_pool = ['BLUE', 'GREEN', 'RED', 'CYAN', 'MAGENTA', 'YELLOW', 'BLACK'] #7
 
-    bforce = Button(axforce, 'force')
-    bforce.on_clicked(mMotor.force)
+    show_text = p1.text(0.5, 0.5, '', fontsize=90, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
 
-    bstop = Button(axstop, 'stop')
-    bstop.on_clicked(mMotor.stop)
+    def animate(i):
+        idx = randint(0, 6)
+        show_text.set_text(text_pool[idx])
+        idxc = randint(0, 6)
+        while idxc == idx:
+            idxc = randint(0, 6)
 
-    bantispring = Button(axantispring, 'antispring')
-    bantispring.on_clicked(mMotor.antispring)
+        show_text.set_color(color_pool[idxc])
 
+        return show_text,
 
+    ani = animation.FuncAnimation(fig, animate, 100, 
+                                  interval=2000, blit=True)  #20 delay, frames refresh 50 times per sec
 
-    bwall = Button(axwall, 'Wall')
-    bwall.on_clicked(mMotor.wall)
-
-    btuk = Button(axtuk, 'Tuk')
-    btuk.on_clicked(mMotor.tuk)
-
-    btick = Button(axtick, 'Tick')
-    btick.on_clicked(mMotor.tick)
-    bspring = Button(axspring, 'Spring')
-    bspring.on_clicked(mMotor.spring)
-    bknob = Button(axknob, 'Knob')
-    bknob.on_clicked(mMotor.knob)
-
-    btune_up = Button(axtune_up, '+1')
-    btune_up.on_clicked(mMotor.tune_up)
-    btune_down = Button(axtune_down, '-1')
-    btune_down.on_clicked(mMotor.tune_down)
-
-
-    range_max = 1100
-    range_min = -10
-
+    """
     plot_data, = p1.plot(ch0_buf, animated=True)
     plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
     
@@ -802,7 +795,13 @@ def main():
     
     ani = animation.FuncAnimation(fig, animate, range(axis_span), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
+
+    """
+
     plt.show()
+
+
+
 
 if __name__ == "__main__":
     main()
