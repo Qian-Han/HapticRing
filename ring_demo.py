@@ -324,7 +324,7 @@ def AddValue(serial_port, val):
                     reading_direction = 0  #got direction info
 
                     running_clockwise = 1
-                    print(running_clockwise)
+                    #print(running_clockwise)
 
 
 
@@ -340,7 +340,7 @@ def AddValue(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    print("             %s"%a_sensor_state)
+                    #print("             %s"%a_sensor_state)
 
                     """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
@@ -416,10 +416,12 @@ def AddValue(serial_port, val):
 
             #angle cal
             if firstTopOrBottom:
+
+                print("first top")
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
-
+                reachingPeak = True
                 a_sensor_state = 0
                 #initial closewise, see sensor 2
                 """
@@ -431,6 +433,7 @@ def AddValue(serial_port, val):
                 """
 
             else:
+
                 base_angle += (20*running_clockwise)
 
                 temp_angle = 0
@@ -513,7 +516,7 @@ def AddValue(serial_port, val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
-
+                reachingPeak = True
                 a_sensor_state = 2
                 #initial closewise, see sensor 2
 
@@ -557,6 +560,8 @@ def AddValue(serial_port, val):
 
             #print(topanddown)
 
+    #print(topanddown)
+
     
     if reachingPeak ==  False:
         if temp_peak*temp_valley != 0:
@@ -574,6 +579,7 @@ def AddValue(serial_port, val):
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
+        #print("base%s, temp%s"%(base_angle, temp_angle))
         total_angle = base_angle + temp_angle * running_clockwise
 
         if total_angle > 360:
@@ -642,22 +648,32 @@ def AddValue_Ch1(val):
             if running_ch1 == True:
                 running_ch1 = False
 
+buffer_interval = 1000;
 
 def serial_read():
+    global buffer_interval
     t = threading.currentThread()
 
     serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
     
     sx = 0
     try:
-        while getattr(t, "do_run", True):   
+        while getattr(t, "do_run", True):  
             read_val = serial_port.readline()
             #split and reading
             read_val_list = [x.strip() for x in read_val.split(',')]
             #print("read:%s"%(read_val))
-            if len(read_val_list) == 2:
-                AddValue(serial_port, int(read_val_list[0])) 
-                AddValue_Ch1(int(read_val_list[1]))         
+
+
+            if buffer_interval > 0:
+                buffer_interval -= 1
+            else:
+                
+
+
+                if len(read_val_list) == 2:
+                    AddValue(serial_port, int(read_val_list[0])) 
+                    AddValue_Ch1(int(read_val_list[1]))         
 
             #time.sleep(0.1)  # ~200Hz
     except ValueError:
