@@ -353,7 +353,7 @@ def AddValue(serial_port, val):
                     #del prev_val_ch1[:]
                     """
 
-                    if running_mode == 1 and :
+                    if running_mode == 1:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0

@@ -118,15 +118,14 @@ class motor(Thread):
 
 	def stop(self, event):
 		self.trigger_state = 8
-		for i in range(0,8):
-			self.serial_port.write("c")	
-		print(self.trigger_state)
+
 
 
 	def antispring(self, event):
 		self.trigger_state = 9
-		self.serial_port.write("c")	
-		self.serial_port.write("e")		
+		# self.serial_port.write("c")	
+		# self.serial_port.write("e")
+		self.serial_port.write("g")		
 		self.is_ready = 1
 		self.step_count = 0
 		self.antispring_step = 0
@@ -163,7 +162,7 @@ class motor(Thread):
 
 					#print(self.val)
 
-			else:
+			elif val >= 0 and val < 5:
 				if self.spring_step == 1:
 					self.spring_step = 0
 					print(self.step_count)
@@ -183,6 +182,148 @@ class motor(Thread):
 
 				self.val = 5.0#val
 
+
+
+
+		if self.trigger_state == 9: #antipring
+
+			if val > 5.0 and val < 80.0:
+				if self.spring_step == 0:
+					self.spring_step = 1
+
+				self.max_per_rotation = val
+					
+
+				val_interval = val - self.val
+
+				if val_interval >=2.0:
+					step_interval = (int)(val_interval / 2.0)
+					#print(step_interval)
+					for x in range(0, step_interval):
+						self.serial_port.write("p")  #step up
+						self.step_count += 1
+
+					self.val = self.val + step_interval * 2.0
+
+					#print(self.val)
+
+			elif val >= 0 and val < 5:
+				if self.spring_step == 1:
+					self.spring_step = 0
+					print(self.step_count)
+					#for x in range(0, self.step_count):
+					
+					if self.max_per_rotation > 70:
+						self.serial_port.write("-")
+						# time.sleep(0.5)
+						self.serial_port.write("g")
+						self.serial_port.write("c")
+						#self.serial_port.write("r")
+					else:
+						for x in range(0, self.step_count):
+							self.serial_port.write("m")
+
+					self.max_per_rotation = 0
+					self.step_count = 0
+
+				self.val = 5.0#val
+
+
+
+		if self.trigger_state == 6: #noforce
+
+			if val > 5.0 and val < 80.0:
+				if self.spring_step == 0:
+					self.spring_step = 1
+
+				self.max_per_rotation = val
+					
+
+				val_interval = val - self.val
+
+				if val_interval >=20.0:
+					step_interval = (int)(val_interval / 20.0)
+					#print(step_interval)
+					for x in range(0, step_interval):
+						self.serial_port.write("p")  #step up
+						self.step_count += 1
+
+					self.val = self.val + step_interval * 20.0
+
+					#print(self.val)
+
+			elif val >= 0 and val < 5:
+				if self.spring_step == 1:
+					self.spring_step = 0
+					print(self.step_count)
+					#for x in range(0, self.step_count):
+					
+					if self.max_per_rotation > 70:
+						self.serial_port.write("c")
+						# time.sleep(0.5)
+						self.serial_port.write("e")
+
+					else:
+						for x in range(0, self.step_count):
+							self.serial_port.write("m")
+
+					self.max_per_rotation = 0
+					self.step_count = 0
+
+				self.val = 5.0#val
+
+
+
+
+		if self.trigger_state == 7: #force
+
+			if val > 5.0 and val < 80.0:
+				if self.spring_step == 0:
+					self.spring_step = 1
+
+
+					#print(self.val)
+
+			elif val >= 0 and val < 2:
+				if self.spring_step == 1:
+					self.spring_step = 0
+	
+					#for x in range(0, self.step_count):
+
+					self.serial_port.write("r")
+					# time.sleep(0.5)
+					self.serial_port.write("g")
+
+
+		if self.trigger_state == 8: #stop
+
+			if val > 40.0 and val < 42.0:
+				if self.spring_step == 0:
+					self.spring_step = 1
+
+					for i in range(0,8):
+						self.serial_port.write("c")	
+					print(self.trigger_state)
+
+			elif val >= 0 and val < 2:
+				if self.spring_step == 1:
+					self.spring_step = 0
+	
+					#for x in range(0, self.step_count):
+
+					self.serial_port.write("r")
+					# self.serial_port.write("g")
+					#print(self.val)
+
+			# elif val >= 0 and val < 5:
+			# 	if self.spring_step == 1:
+			# 		self.spring_step = 0
+	
+			# 		#for x in range(0, self.step_count):
+
+			# 		self.serial_port.write("r")
+			# 		# time.sleep(0.5)
+			# 		self.serial_port.write("g")
 
 
 

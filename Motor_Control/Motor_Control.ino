@@ -61,6 +61,10 @@ void loop(){
       getReady2();
       break;
 
+      case '-':
+      antiSpringReset();
+      break;
+
       case 'k':
       knobStepOn();
       break;
@@ -158,9 +162,8 @@ void move(int motor, int speed, int direction) {  // Motor moves function
 
 void getReady(){    
   minimumStepDownL();
-  
   minimumStepDownL();
-  //minimumStepDownL();
+  minimumStepDownL();
   minimumStepDownL();
   minimumStepDownM();
   minimumStepDownM();
@@ -169,6 +172,7 @@ void getReady(){
 }
 
 void getReady2(){    
+  minimumStepDownL();
   minimumStepDownL();
   minimumStepDownL();
   minimumStepDownL();
@@ -197,6 +201,7 @@ void tukStepOn(){
 
 
 void reset(){   
+  delay(2000);
   for(int i = 0; i< 5; i++){ 
     minimumStepUpL();
   }
@@ -205,6 +210,15 @@ void reset(){
   }
 }
 
+void antiSpringReset(){
+  for(int i = 0; i< 2; i++){ 
+    minimumStepUpL();
+  }
+  Stop();
+  delay(10);
+}
+
+
 void tickReset(){   
   for(int i = 0; i< 5; i++){ 
     minimumStepUpL();
@@ -212,6 +226,8 @@ void tickReset(){
   for(int i = 0; i< 3; i++){ 
     minimumStepUpS();
   }
+  move(1,0,0);
+  delay(10);
 }
 
 void knobDown(){
