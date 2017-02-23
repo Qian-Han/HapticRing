@@ -175,9 +175,9 @@ void getReady2(){
   minimumStepDownL();
   minimumStepDownL();
   minimumStepDownL();
-  minimumStepDownL();
-  minimumStepDownM();
-  minimumStepDownS(); 
+//  minimumStepDownL();
+//  minimumStepDownM();
+//  minimumStepDownS(); 
 }
 
 
@@ -202,7 +202,7 @@ void tukStepOn(){
 
 void reset(){   
   delay(2000);
-  for(int i = 0; i< 5; i++){ 
+  for(int i = 0; i< 3; i++){ 
     minimumStepUpL();
   }
   for(int i = 0; i< 3; i++){ 
@@ -211,23 +211,22 @@ void reset(){
 }
 
 void antiSpringReset(){
+  delay(2000);
   for(int i = 0; i< 2; i++){ 
     minimumStepUpL();
   }
-  Stop();
-  delay(10);
+//  Stop();
+//  delay(10);
 }
 
 
 void tickReset(){   
-  for(int i = 0; i< 5; i++){ 
+  for(int i = 0; i< 6; i++){ 
     minimumStepUpL();
   }
-  for(int i = 0; i< 3; i++){ 
-    minimumStepUpS();
-  }
-  move(1,0,0);
-  delay(10);
+  
+//  move(1,0,0);
+//  delay(10);
 }
 
 void knobDown(){

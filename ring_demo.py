@@ -730,49 +730,58 @@ def main():
     fig.canvas.mpl_connect('close_event', handle_close)
     fig.canvas.mpl_connect('key_press_event', press)
 
-    axwall = plt.axes([0.4, 0.01, 0.05, 0.05])
-    axtuk = plt.axes([0.35, 0.01, 0.05, 0.05])
-    axtick = plt.axes([0.3, 0.01, 0.05, 0.05])
-    axspring = plt.axes([0.25, 0.01, 0.05, 0.05])
-    axknob = plt.axes([0.2, 0.01, 0.05, 0.05])
-    axtune_up = plt.axes([0.1, 0.01, 0.05, 0.05])
-    axtune_down = plt.axes([0.15, 0.01, 0.05, 0.05])
-    axnoforce = plt.axes([0.45, 0.01, 0.05, 0.05])
-    axforce = plt.axes([0.5, 0.01, 0.05, 0.05])
-    axstop = plt.axes([0.55, 0.01, 0.05, 0.05])
-    axantispring = plt.axes([0.6, 0.01, 0.05, 0.05])
+    # axwall = plt.axes([0.4, 0.01, 0.05, 0.05])
+    # axtuk = plt.axes([0.35, 0.01, 0.05, 0.05])
+    
+    
+    # axknob = plt.axes([0.2, 0.01, 0.05, 0.05])
+    # axtune_up = plt.axes([0.1, 0.01, 0.05, 0.05])
+    # axtune_down = plt.axes([0.15, 0.01, 0.05, 0.05])
+    axnoforce = plt.axes([0.2 - 0.1, 0.01, 0.1, 0.05])
+    axforce = plt.axes([0.3- 0.1, 0.01, 0.1, 0.05])
+    axstop = plt.axes([0.4- 0.1, 0.01, 0.1, 0.05])
+    axspring = plt.axes([0.5- 0.1, 0.01, 0.1, 0.05])
+    axantispring = plt.axes([0.6- 0.1, 0.01, 0.15, 0.05])
+    axtick_bump = plt.axes([0.75- 0.1, 0.01, 0.12, 0.05])
+    # axtick_fast = plt.axes([0.87- 0.1, 0.01, 0.12, 0.05])
 
-    bnoforce = Button(axnoforce, 'noforce')
+
+    bnoforce = Button(axnoforce, 'No Force')
     bnoforce.on_clicked(mMotor.noforce)
 
-    bforce = Button(axforce, 'force')
+    bforce = Button(axforce, 'Force')
     bforce.on_clicked(mMotor.force)
 
-    bstop = Button(axstop, 'stop')
+    bstop = Button(axstop, 'Stop')
     bstop.on_clicked(mMotor.stop)
 
-    bantispring = Button(axantispring, 'antispring')
+    bantispring = Button(axantispring, 'Anti-Spring')
     bantispring.on_clicked(mMotor.antispring)
 
-
-
-    bwall = Button(axwall, 'Wall')
-    bwall.on_clicked(mMotor.wall)
-
-    btuk = Button(axtuk, 'Tuk')
-    btuk.on_clicked(mMotor.tuk)
-
-    btick = Button(axtick, 'Tick')
-    btick.on_clicked(mMotor.tick)
     bspring = Button(axspring, 'Spring')
     bspring.on_clicked(mMotor.spring)
-    bknob = Button(axknob, 'Knob')
-    bknob.on_clicked(mMotor.knob)
 
-    btune_up = Button(axtune_up, '+1')
-    btune_up.on_clicked(mMotor.tune_up)
-    btune_down = Button(axtune_down, '-1')
-    btune_down.on_clicked(mMotor.tune_down)
+    btick_bump = Button(axtick_bump, 'Tick_bump')
+    btick_bump.on_clicked(mMotor.tick_bump)
+
+    # btick_fast = Button(axtick_fast, 'Tick_fast')
+    # btick_fast.on_clicked(mMotor.tick_fast)
+
+    # bwall = Button(axwall, 'Wall')
+    # bwall.on_clicked(mMotor.wall)
+
+    # btuk = Button(axtuk, 'Tuk')
+    # btuk.on_clicked(mMotor.tuk)
+
+    
+ 
+    # bknob = Button(axknob, 'Knob')
+    # bknob.on_clicked(mMotor.knob)
+
+    # btune_up = Button(axtune_up, '+1')
+    # btune_up.on_clicked(mMotor.tune_up)
+    # btune_down = Button(axtune_down, '-1')
+    # btune_down.on_clicked(mMotor.tune_down)
 
 
     range_max = 1100
