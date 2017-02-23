@@ -49,7 +49,7 @@ class data_storage(object):
 		    for data in self.samples:
 		    	writer.writerow(data.tocvs())
 
-			print("data saved")
+		print("data saved")
 
 
 """

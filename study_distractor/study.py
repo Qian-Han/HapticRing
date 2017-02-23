@@ -60,6 +60,13 @@ profile_index = 0
 user_action_count = 0
 trial_start_temp = 0
 trial_end_temp = 0
+trial_distraction_correct = 0
+trial_isWaitingForAnswer = 0  #0-tesitng, 1-wait for profile, 2-wait for color, 3-check color answer
+trial_answer_profile = 0
+trial_answer_color = 0
+trial_duration = 0
+idx_p = -1
+idxc_p = -1
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -723,13 +730,34 @@ def main():
     global user_action_count
     global trial_start_temp
     global trial_end_temp
+    global trial_distraction_correct
+    global trial_isWaitingForAnswer
+    global trial_answer_profile
+    global trial_answer_color
 
     #take user input
-    person = raw_input('Enter participant number: ')
-    print("participant: ", person)
+    while True:
+        try:
+            person = int(raw_input('Enter participant number: '))
+            print("participant: ", person)
+            break
+        except ValueError:
+            print("not a valid number")
 
-    block = raw_input('Enter block: ')  #in total 4 blocks, 2 moving conditions by 2 distractor conditions
-    print("condition: ", block)
+    while True:
+        try:
+            block = int(raw_input('Enter block: '))  #in total 4 blocks, 2 moving conditions by 2 distractor conditions
+            
+            if block >= 5:
+                print("not a valid block")
+                continue
+
+            print("condition: ", block)
+
+            break
+        except ValueError:
+            print("not a valid number")
+
 
     trials = []
     for itrt in range(total_profiles):
@@ -738,6 +766,8 @@ def main():
 
  
 
+
+            
     #t = threading.Thread(target=serial_read)
     #t.start()
 
@@ -773,51 +803,100 @@ def main():
         global trial_start_temp
         global trial_end_temp
         global person
+        global trial_isWaitingForAnswer
+        global trial_answer_profile
+        global trial_answer_color
+        global trial_duration
+        global trial_distraction_correct
+
         #mMotor.write_serial(event.key)
         if event.key == ' ':
-            pause^=True
+            if ((block == 2 or block == 4) and (trial_isWaitingForAnswer == 1 or trial_isWaitingForAnswer == 2)) or ((block == 1 or block == 3) and (trial_isWaitingForAnswer == 1)):
+                print("expecting answers")
+            else:
 
-            if not pause:
-                #randomly select a trial
-                if current_trial < total_trials:
-                    current_trial+=1
-                    
-                    idxp = randint(0, (total_trials - current_trial)) #profile indx
-                    profile_index = trials[idxp]
-                    #mMotor.set_profile(profile_index)
-                    trials.remove(profile_index)
+                pause^=True
 
-                    #start data recording
-                    isRecording = True
-                    trial_start_temp = time.time()
+                if not pause:
+                    #randomly select a trial
+                    if current_trial < total_trials:
+                        current_trial+=1
+                        
+                        idxp = randint(0, (total_trials - current_trial)) #profile indx
+                        profile_index = trials[idxp]
+                        #mMotor.set_profile(profile_index)
+                        trials.remove(profile_index)
+
+                        #start data recording
+                        isRecording = True
+                        trial_isWaitingForAnswer = 0
+                        trial_distraction_correct = 0
+
+                        trial_start_temp = time.time()
+                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                        mDataStorage.add_sample(trial_start_temp, total_angle, 0, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+
+                        """
+                        idx = randint(0, 6)  #text index
+                        show_text.set_text(text_pool[idx])
+                        idxc = randint(0, 6)  #color index
+                        while idxc == idx:
+                            idxc = randint(0, 6)
+
+                        show_text.set_color(color_pool[idxc])
+                        """
+                if pause:
+                    #calcuate the result
+                    trial_end_temp = time.time()
+                    trial_duration = trial_end_temp - trial_start_temp
+
+                    #save to data
                     #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                    mDataStorage.add_sample(trial_start_temp, total_angle, 0, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+                    #mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, 0, trial_distraction_correct, 0)
+                    
+                    
+                    #stop data recording
+                    isRecording = False
 
-                    """
-                    idx = randint(0, 6)  #text index
-                    show_text.set_text(text_pool[idx])
-                    idxc = randint(0, 6)  #color index
-                    while idxc == idx:
-                        idxc = randint(0, 6)
-
-                    show_text.set_color(color_pool[idxc])
-                    """
-            if pause:
-                #calcuate the result
-                trial_end_temp = time.time()
-                trial_duration = trial_end_temp - trial_start_temp
-                #save to data
-                #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, 0, 0, 0)
-                user_action_count = 0
-                #stop data recording
-                isRecording = False
+                    if current_trial <= total_trials:
+                        trial_isWaitingForAnswer = 1
 
         
-        if event.key == 'q':
+        elif event.key == 'q':
             #close
             plt.close(fig)
-        
+
+
+        else:
+            if block == 2 or block == 4:
+                if trial_isWaitingForAnswer == 1:
+                    try:
+                        trial_answer_profile = int(event.key)
+                        trial_isWaitingForAnswer = 2
+                    except ValueError:
+                        trial_isWaitingForAnswer = 1
+                        print("not a valid number")
+
+                    
+                elif trial_isWaitingForAnswer == 2:
+                    try:
+                        trial_answer_color = int(event.key)
+                        trial_isWaitingForAnswer = 3
+                        mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        user_action_count = 0
+                    except ValueError:
+                        trial_isWaitingForAnswer = 2
+                        print("not a valid number")
+            else:
+                if trial_isWaitingForAnswer == 1:
+                    try:
+                        trial_answer_profile = int(event.key)
+                        trial_isWaitingForAnswer = 2
+                        mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        user_action_count = 0
+                    except ValueError:
+                        trial_isWaitingForAnswer = 1
+                        print("not a valid number")
 
     def reset(event):
         base_angle = 0
@@ -841,26 +920,76 @@ def main():
 
     show_trial = p1.text(0.8, 0.95, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
     show_participant = p1.text(0.1, 0.95, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
-    show_block = p1.text(0.4, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_block = p1.text(0.5, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
 
+    if block == 1:
+        show_block.set_text('block: %s  sit  normal'%block)
+    elif block == 2:
+        show_block.set_text('block: %s  sit  distract'%block)
+    elif block == 3:
+        show_block.set_text('block: %s  walk  normal'%block)
+    elif block == 4:
+        show_block.set_text('block: %s  walk  distract'%block)
     
     def animate(i):
+        global idx_p
+        global idxc_p
+        global trial_distraction_correct
 
         if not pause:
-            idx = randint(0, 4)
-            show_text.set_text(text_pool[idx])
-            idxc = randint(0, 4)
-            show_text.set_color(color_pool[idxc])
+
+            if block == 2 or block == 4:            
+                idx = randint(0, 4)
+                while idx == idx_p:
+                    idx = randint(0, 4)
+
+                show_text.set_text(text_pool[idx])
+                idxc = randint(0, 4)
+                while idxc == idxc_p:
+                    idxc = randint(0, 4)
+                show_text.set_color(color_pool[idxc])
+
+                idx_p = idx
+                idxc_p = idxc
+
+                if idx == idxc:
+                    trial_distraction_correct+=1
+            else:
+                show_text.set_text("")
      
         else:
             if current_trial == 0:
                 show_text.set_text("press space key to start :) ")
                 show_text.set_color('b')
-            elif current_trial == total_trials:
-                show_text.set_text("block done, take a rest :) ")
-                show_text.set_color('b')
             else:
-                show_text.set_text("")
+                if block == 2 or block == 4:
+                    if trial_isWaitingForAnswer == 1:
+                        show_text.set_text("what profile? ")
+                        show_text.set_color('b')
+                    elif trial_isWaitingForAnswer == 2:
+                        show_text.set_text("how many text-color matches?")
+                        show_text.set_color('b')
+                    elif trial_isWaitingForAnswer == 3:
+                        if int(trial_answer_color) == trial_distraction_correct:
+                            show_text.set_text("text-color matches correct")
+                            show_text.set_color('b')
+                        else:
+                            show_text.set_text("text-color matches not correct")
+                            show_text.set_color('r')
+
+                        if current_trial == total_trials:
+                            show_text.set_text("block done, take a rest :) ")
+                            show_text.set_color('b')
+                else:
+                    if trial_isWaitingForAnswer == 1:
+                        show_text.set_text("what profile? ")
+                        show_text.set_color('b')
+                    elif trial_isWaitingForAnswer == 2:
+                        show_text.set_text("press space to start next trial")
+                        show_text.set_color('b')
+                        if current_trial == total_trials:
+                            show_text.set_text("block done, take a rest :) ")
+                            show_text.set_color('b')
 
         show_trial.set_text("trial: %s/%s"%(current_trial, total_trials))
 
