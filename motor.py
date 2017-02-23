@@ -14,6 +14,7 @@ class motor(Thread):
 
 		self.trigger_state = 0
 		self.val = 0
+		self.max_per_rotation = 0
 		self.ready_to_stop_motor = 90
 		self.ready_to_stop_sensor = 180
 		self.tick_step = 0
@@ -145,6 +146,8 @@ class motor(Thread):
 			if val > 5.0 and val < 80.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
+
+				self.max_per_rotation = val
 					
 
 				val_interval = val - self.val
@@ -165,12 +168,17 @@ class motor(Thread):
 					self.spring_step = 0
 					print(self.step_count)
 					#for x in range(0, self.step_count):
-					if val >= 80:
+					
+					if self.max_per_rotation > 70:
 						self.serial_port.write("r")
 						# time.sleep(0.5)
 						self.serial_port.write("|")
-					#self.serial_port.write("r")
-					
+						#self.serial_port.write("r")
+					else:
+						for x in range(0, self.step_count):
+							self.serial_port.write("p")
+
+					self.max_per_rotation = 0
 					self.step_count = 0
 
 				self.val = 5.0#val

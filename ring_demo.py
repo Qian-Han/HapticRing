@@ -137,6 +137,8 @@ temp_angle = 0
 offset_angle = 0
 total_angle = 0
 
+max_per_rotation = 0
+
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
@@ -213,6 +215,7 @@ def AddValue(serial_port, val):
     global temp_peak
     global temp_valley
     global total_angle
+    global max_per_rotation
     global offset_angle
     global goingup
     global reachingPeak
@@ -350,7 +353,7 @@ def AddValue(serial_port, val):
                     #del prev_val_ch1[:]
                     """
 
-                    if running_mode == 1:
+                    if running_mode == 1 and :
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0

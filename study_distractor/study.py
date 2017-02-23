@@ -34,35 +34,12 @@ from matplotlib.widgets import Button
 
 mMotor = motor()
 
-from s_speech import speech
-
-
-
 axis_span = 1000
 
 #initilize the channle buffers
 ch0_buf = deque(0 for _ in range(axis_span))
 ch1_buf = deque(0 for _ in range(axis_span))
 avg = 0
-
-
-#communication with arduino
-def write_serial(serial_port, val_string):
-    serial_port.write(val_string)
-
-
-"""
-tick_event = 0
-def tick_tick(serial_port):
-    global total_angle
-    global tick_event
-
-    if total_angle >= 15 and tick_event == 0:
-        write_serial(serial_port, "e")
-        tick_event = 1
-        print("event 1 called")
-        
-"""
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -424,7 +401,7 @@ def AddValue(serial_port, val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
-
+                reachingPeak = True
                 a_sensor_state = 0
                 #initial closewise, see sensor 2
                 """
@@ -518,7 +495,7 @@ def AddValue(serial_port, val):
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
-
+                reachingPeak = True
                 a_sensor_state = 2
                 #initial closewise, see sensor 2
 
@@ -684,13 +661,35 @@ def serial_read():
 
 #############################################################################################
 
-
+#study parameters
+total_profiles = 6
+profile_repeat = 5
+total_trials = 30 # 6 profile * 5 repeat
+current_trial = 0
+pause = True
 
 def main():
 
+
+    #take user input
+    person = raw_input('Enter participant number: ')
+    print("participant: ", person)
+
+    block = raw_input('Enter block: ')  #in total 4 blocks, 2 moving conditions by 2 distractor conditions
+    print("condition: ", block)
+
+    trials = []
+    for itrt in range(total_profiles):
+        for itrr in range(profile_repeat):
+            trials.append(itrt)
+
+    #print(trials)
+    global current_trial
+    global pause
     global total_angle
     global temp_angle
     global base_angle
+
 
     #t = threading.Thread(target=serial_read)
     #t.start()
@@ -700,23 +699,55 @@ def main():
     #mSpeech = speech()
     #mSpeech.start()
 
-    def handle_close(event):
+    def close_event():
         #mMotor.close()
         #mMotor.join()
         #t.do_run = False
         #t.join()
 
-        #mSpeech.stop()
-        #mSpeech.join()
+        #save data
+        print("data saved")
 
 
         exit()
 
 
+    def handle_close(event):
+        close_event()
+
+
 
     def press(event):
-        #if event.key == 'r':  #reset motor
-        mMotor.write_serial(event.key)
+        global current_trial
+        global pause
+        #mMotor.write_serial(event.key)
+        if event.key == ' ':
+            pause^=True
+
+            if not pause:
+                #randomly select a trial
+                if current_trial < total_trials:
+                    current_trial+=1
+                    
+                    idxp = randint(0, (total_trials - current_trial)) #profile indx
+                    profile_index = trials[idxp]
+                    #mMotor.set_profile(profile_index)
+                    trials.remove(profile_index)
+
+                    """
+                    idx = randint(0, 6)  #text index
+                    show_text.set_text(text_pool[idx])
+                    idxc = randint(0, 6)  #color index
+                    while idxc == idx:
+                        idxc = randint(0, 6)
+
+                    show_text.set_color(color_pool[idxc])
+                    """
+        
+        if event.key == 'q':
+            #close
+            plt.close(fig)
+        
 
     def reset(event):
         base_angle = 0
@@ -732,21 +763,38 @@ def main():
     fig.canvas.mpl_connect('key_press_event', press)
 
 
-    color_pool = ['b', 'g', 'r', 'c', 'm', 'y', 'k'] #7
-    text_pool = ['BLUE', 'GREEN', 'RED', 'CYAN', 'MAGENTA', 'YELLOW', 'BLACK'] #7
+    color_pool = ['b', 'g', 'r', 'y', 'k'] #5
+    text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
+    #text_pool = [u'蓝'.encode('utf-8'),u'绿'.encode('utf-8'), u'红'.encode('utf-8'), u'青'.encode('utf-8'), u'黄'.encode('utf-8'), u'黑'.encode('utf-8')]
 
-    show_text = p1.text(0.5, 0.5, '', fontsize=90, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_text = p1.text(0.5, 0.5, '', color='g', fontsize=30, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
 
+    show_trial = p1.text(0.8, 0.95, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_participant = p1.text(0.1, 0.95, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_block = p1.text(0.4, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+
+    
     def animate(i):
-        idx = randint(0, 6)
-        show_text.set_text(text_pool[idx])
-        idxc = randint(0, 6)
-        while idxc == idx:
-            idxc = randint(0, 6)
 
-        show_text.set_color(color_pool[idxc])
+        if not pause:
+            idx = randint(0, 4)
+            show_text.set_text(text_pool[idx])
+            idxc = randint(0, 4)
+            show_text.set_color(color_pool[idxc])
+     
+        else:
+            if current_trial == 0:
+                show_text.set_text("press space key to start :) ")
+                show_text.set_color('b')
+            elif current_trial == total_trials:
+                show_text.set_text("block done, take a rest :) ")
+                show_text.set_color('b')
+            else:
+                show_text.set_text("")
 
-        return show_text,
+        show_trial.set_text("trial: %s/%s"%(current_trial, total_trials))
+
+        return [show_text, show_trial]
 
     ani = animation.FuncAnimation(fig, animate, 100, 
                                   interval=2000, blit=True)  #20 delay, frames refresh 50 times per sec
