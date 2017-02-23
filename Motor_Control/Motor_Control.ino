@@ -57,6 +57,10 @@ void loop(){
       getReady();
       break;
 
+      case '|':
+      getReady2();
+      break;
+
       case 'k':
       knobStepOn();
       break;
@@ -156,11 +160,22 @@ void getReady(){
   minimumStepDownL();
   
   minimumStepDownL();
-  //minimumStepDownM();
+  //minimumStepDownL();
+  minimumStepDownL();
+  minimumStepDownM();
   minimumStepDownM();
   minimumStepDownS();
   
 }
+
+void getReady2(){    
+  minimumStepDownL();
+  minimumStepDownL();
+  minimumStepDownL();
+  minimumStepDownM();
+  minimumStepDownS(); 
+}
+
 
 
 

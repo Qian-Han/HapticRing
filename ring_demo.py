@@ -165,9 +165,9 @@ direction_test_timer = 0
 reading_direction = 1
 
 
-predict_span = 10
+predict_span = 200
 
-running_mode = 2 # 1 -> reset  2-> no reset
+running_mode = 1 # 1 -> reset  2-> no reset
 
 
 def detectRunning(val_list):
@@ -417,7 +417,7 @@ def AddValue(serial_port, val):
             #angle cal
             if firstTopOrBottom:
 
-                print("first top")
+                #print("first top")
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
@@ -575,8 +575,11 @@ def AddValue(serial_port, val):
 
     
 
-    if running and running_mode == 1: #auto reset
+    if firstTopOrBottom == False and running_mode == 1: #auto reset
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
+        if total_angle < 0:
+            total_angle = 0
+        mMotor.get_angle(total_angle)   
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
@@ -594,7 +597,7 @@ def AddValue(serial_port, val):
 
 
         #if mMotor.trigger_state > 0:
-        mMotor.get_angle(total_angle)
+        # mMotor.get_angle(total_angle)
 
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):

@@ -67,7 +67,7 @@ class motor(Thread):
 
 	def spring(self, event):
 		self.trigger_state =2
-		self.serial_port.write("g")	
+		self.serial_port.write("|")	
 		self.is_ready = 1
 		self.step_count = 0
 		self.spring_step = 0
@@ -139,180 +139,263 @@ class motor(Thread):
 
 	def get_angle(self, val):
 		#print(val)
+
 		if self.trigger_state == 2: #spring
-			if val >=2.0 and val < 20.0 and self.is_ready == 0:
-				self.serial_port.write("g")
-				self.is_ready = 1
 
-
-			if val >= 20.0 and val <= 300.0:
+			if val > 5.0 and val < 80.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
-
-				#if val < 2.0:
-				#	self.val = 2.0
+					
 
 				val_interval = val - self.val
 
-				if val_interval >=4.0:
-					step_interval = (int)(val_interval / 4.0)
+				if val_interval >=3.0:
+					step_interval = (int)(val_interval / 3.0)
 					#print(step_interval)
 					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
 						self.step_count += 1
 
-					self.val = self.val + step_interval * 4.0
+					self.val = self.val + step_interval * 3.0
 
 					#print(self.val)
 
 			else:
 				if self.spring_step == 1:
 					self.spring_step = 0
-					#print(self.step_count)
+					print(self.step_count)
 					#for x in range(0, self.step_count):
-					self.serial_port.write("r")
+					if val >= 80:
+						self.serial_port.write("r")
+						# time.sleep(0.5)
+						self.serial_port.write("|")
 					#self.serial_port.write("r")
-					self.is_ready = 0
-						#time.sleep(0.015)
-
+					
 					self.step_count = 0
 
-				self.val = 20.0#val
+				self.val = 5.0#val
+
+
+
+
+		##  spring profile 2
+
+		# if self.trigger_state == 2: #spring
+		# 	if val >1.0 and val < 3.0 and self.is_ready == 0:
+		# 		self.serial_port.write("|")
+		# 		self.is_ready = 1
+
+
+		# 	if val > 3.0 and val < 60.0:
+		# 		if self.spring_step == 0:
+		# 			self.spring_step = 1
+
+		# 		#if val < 2.0:
+		# 		#	self.val = 2.0
+
+		# 		val_interval = val - self.val
+
+		# 		if val_interval >=2.0:
+		# 			step_interval = (int)(val_interval / 2.0)
+		# 			#print(step_interval)
+		# 			for x in range(0, step_interval):
+		# 				self.serial_port.write("m")  #step down
+		# 				self.step_count += 1
+
+		# 			self.val = self.val + step_interval * 2.0
+
+		# 			#print(self.val)
+
+		# 	else:
+		# 		if self.spring_step == 1:
+		# 			self.spring_step = 0
+		# 			print(self.step_count)
+		# 			#for x in range(0, self.step_count):
+		# 			self.serial_port.write("r")
+		# 			#self.serial_port.write("r")
+		# 			self.is_ready = 0
+		# 				#time.sleep(0.015)
+
+		# 			self.step_count = 0
+
+		# 		self.val = 0.0#val
+
+
+
+		# if self.trigger_state == 2: #spring
+		# 	if val >1.0 and val < 3.0 and self.is_ready == 0:
+		# 		self.serial_port.write("|")
+		# 		self.is_ready = 1
+
+
+		# 	if val > 3.0 and val < 60.0:
+		# 		if self.spring_step == 0:
+		# 			self.spring_step = 1
+
+		# 		#if val < 2.0:
+		# 		#	self.val = 2.0
+
+		# 		val_interval = val - self.val
+
+		# 		if val_interval >=2.0:
+		# 			step_interval = (int)(val_interval / 2.0)
+		# 			#print(step_interval)
+		# 			for x in range(0, step_interval):
+		# 				self.serial_port.write("m")  #step down
+		# 				self.step_count += 1
+
+		# 			self.val = self.val + step_interval * 2.0
+
+		# 			#print(self.val)
+
+		# 	else:
+		# 		if self.spring_step == 1:
+		# 			self.spring_step = 0
+		# 			print(self.step_count)
+		# 			#for x in range(0, self.step_count):
+		# 			self.serial_port.write("r")
+		# 			#self.serial_port.write("r")
+		# 			self.is_ready = 0
+		# 				#time.sleep(0.015)
+
+		# 			self.step_count = 0
+
+		# 		self.val = 0.0#val
 	
 
-		elif self.trigger_state == 1: #tick
-			if val >=2.0 and val < 15.0 and self.is_ready == 0:
-				self.serial_port.write("g")
-				self.is_ready = 1
+		# elif self.trigger_state == 1: #tick
+		# 	if val >=2.0 and val < 15.0 and self.is_ready == 0:
+		# 		self.serial_port.write("g")
+		# 		self.is_ready = 1
 
 
-			if val >= 15.0 and val <= 45.0:
-				if self.spring_step == 0:
-					self.spring_step = 1
+		# 	if val >= 15.0 and val <= 45.0:
+		# 		if self.spring_step == 0:
+		# 			self.spring_step = 1
 
-				#if val < 2.0:
-				#	self.val = 2.0
+		# 		#if val < 2.0:
+		# 		#	self.val = 2.0
 
-				val_interval = val - self.val
+		# 		val_interval = val - self.val
 
-				if val_interval >=0.75:
-					step_interval = (int)(val_interval / 0.75)
-					#print(step_interval)
-					for x in range(0, step_interval):
-						self.serial_port.write("m")  #step down
-						self.step_count += 1
+		# 		if val_interval >=0.75:
+		# 			step_interval = (int)(val_interval / 0.75)
+		# 			#print(step_interval)
+		# 			for x in range(0, step_interval):
+		# 				self.serial_port.write("m")  #step down
+		# 				self.step_count += 1
 
-					self.val = self.val + step_interval * 0.75
+		# 			self.val = self.val + step_interval * 0.75
 
-					#print(self.val)
+		# 			#print(self.val)
 
-			elif (val > 46 and val < 360) or (val < 14.7 and val > 0):
-				if self.spring_step == 1:
-					self.spring_step = 0
-					#print(self.step_count)
-					#for x in range(0, self.step_count):
-					self.serial_port.write("y")
-					self.is_ready = 0
-						#time.sleep(0.015)
+		# 	elif (val > 46 and val < 360) or (val < 14.7 and val > 0):
+		# 		if self.spring_step == 1:
+		# 			self.spring_step = 0
+		# 			#print(self.step_count)
+		# 			#for x in range(0, self.step_count):
+		# 			self.serial_port.write("y")
+		# 			self.is_ready = 0
+		# 				#time.sleep(0.015)
 
-					self.step_count = 0
+		# 			self.step_count = 0
 
-				self.val = 15.0#val
-
-
-
-
-		elif self.trigger_state == 3: #knob
-			if self.knob_step_on == 1 and val > self.knob_lift_ang[self.knob_ind] and val < self.knob_lift_ang[self.knob_ind] + 2.0:
-				self.serial_port.write("n") #lift up
-				self.knob_step_on = 0
-			elif self.knob_step_on == 0 and val > self.knob_down_ang[self.knob_ind] and self.knob_down_ang[self.knob_ind] + 2.0:
-				self.serial_port.write("b") #put down
-				self.knob_step_on = 1
-				self.knob_ind += 1
-				if self.knob_ind == len(self.knob_lift_ang):
-					self.knob_ind = 0 
+		# 		self.val = 15.0#val
 
 
 
-		elif self.trigger_state == 4: #tuk
-			if self.tuk_step_on == 1 and val > self.tuk_lift_ang[self.tuk_ind] and val < self.tuk_lift_ang[self.tuk_ind] + 2.0:
-				self.serial_port.write(",") #lift down
-				self.tuk_step_on = 0
-			elif self.tuk_step_on == 0 and val > self.tuk_down_ang[self.tuk_ind] and self.tuk_down_ang[self.tuk_ind] + 2.0:
-				self.serial_port.write("v") #put up
-				self.tuk_step_on = 1
-				self.tuk_ind += 1
-				if self.tuk_ind == len(self.tuk_lift_ang):
-					self.tuk_ind = 0 
+
+		# elif self.trigger_state == 3: #knob
+		# 	if self.knob_step_on == 1 and val > self.knob_lift_ang[self.knob_ind] and val < self.knob_lift_ang[self.knob_ind] + 2.0:
+		# 		self.serial_port.write("n") #lift up
+		# 		self.knob_step_on = 0
+		# 	elif self.knob_step_on == 0 and val > self.knob_down_ang[self.knob_ind] and self.knob_down_ang[self.knob_ind] + 2.0:
+		# 		self.serial_port.write("b") #put down
+		# 		self.knob_step_on = 1
+		# 		self.knob_ind += 1
+		# 		if self.knob_ind == len(self.knob_lift_ang):
+		# 			self.knob_ind = 0 
+
+
+
+		# elif self.trigger_state == 4: #tuk
+		# 	if self.tuk_step_on == 1 and val > self.tuk_lift_ang[self.tuk_ind] and val < self.tuk_lift_ang[self.tuk_ind] + 2.0:
+		# 		self.serial_port.write(",") #lift down
+		# 		self.tuk_step_on = 0
+		# 	elif self.tuk_step_on == 0 and val > self.tuk_down_ang[self.tuk_ind] and self.tuk_down_ang[self.tuk_ind] + 2.0:
+		# 		self.serial_port.write("v") #put up
+		# 		self.tuk_step_on = 1
+		# 		self.tuk_ind += 1
+		# 		if self.tuk_ind == len(self.tuk_lift_ang):
+		# 			self.tuk_ind = 0 
 
 		
 
-		elif self.trigger_state == 5: #wall
-			# if (val >= self.wall_ang[1] and val <= self.wall_ang[1] + 2) or (val >= self.wall_ang[0] - 2 and val <= self.wall_ang[0])
-			if self.wall_step_on == 0 and val > self.wall_ang[1] and val <= self.wall_ang[1] + 10:
-				self.serial_port.write(".") #lift down
-				self.wall_step_on = 1
-			elif self.wall_step_on == 0 and val >= self.wall_ang[0] - 10  and val <= self.wall_ang[0]:
-				self.serial_port.write(".") #lift down
-				self.wall_step_on = 1
+		# elif self.trigger_state == 5: #wall
+		# 	# if (val >= self.wall_ang[1] and val <= self.wall_ang[1] + 2) or (val >= self.wall_ang[0] - 2 and val <= self.wall_ang[0])
+		# 	if self.wall_step_on == 0 and val > self.wall_ang[1] and val <= self.wall_ang[1] + 10:
+		# 		self.serial_port.write(".") #lift down
+		# 		self.wall_step_on = 1
+		# 	elif self.wall_step_on == 0 and val >= self.wall_ang[0] - 10  and val <= self.wall_ang[0]:
+		# 		self.serial_port.write(".") #lift down
+		# 		self.wall_step_on = 1
 
 
 
-			elif self.wall_step_on == 1 and val < self.wall_ang[1] and val >= self.wall_ang[1] - 10:
-				self.serial_port.write("/") #rise up
-				self.wall_step_on = 0
+		# 	elif self.wall_step_on == 1 and val < self.wall_ang[1] and val >= self.wall_ang[1] - 10:
+		# 		self.serial_port.write("/") #rise up
+		# 		self.wall_step_on = 0
 
-			elif self.wall_step_on == 1 and val > self.wall_ang[0] and val <= self.wall_ang[0] + 10:
-				self.serial_port.write("/") #rise up
-				self.wall_step_on = 0
-
-
+		# 	elif self.wall_step_on == 1 and val > self.wall_ang[0] and val <= self.wall_ang[0] + 10:
+		# 		self.serial_port.write("/") #rise up
+		# 		self.wall_step_on = 0
 
 
 
-		elif self.trigger_state == 9: #antispring
-			if val >=2.0 and val < 20.0 and self.is_ready == 0:
-				for x in range(0, 2):
-					self.serial_port.write("g")
-				# self.serial_port.write("c")
-				self.serial_port.write("z")
-				self.is_ready = 1
 
 
-			if val >= 20.0 and val <= 300.0:
-				if self.antispring_step == 0:
-					self.antispring_step = 1
+		# elif self.trigger_state == 9: #antispring
+		# 	if val >=2.0 and val < 20.0 and self.is_ready == 0:
+		# 		for x in range(0, 2):
+		# 			self.serial_port.write("g")
+		# 		# self.serial_port.write("c")
+		# 		self.serial_port.write("z")
+		# 		self.is_ready = 1
 
-				#if val < 2.0:
-				#	self.val = 2.0
 
-				val_interval = val - self.val
+		# 	if val >= 20.0 and val <= 300.0:
+		# 		if self.antispring_step == 0:
+		# 			self.antispring_step = 1
 
-				if val_interval >=4.0:
-					step_interval = (int)(val_interval / 4.0)
-					#print(step_interval)
-					for x in range(0, step_interval):
-						self.serial_port.write("p")  #step on
-						self.step_count += 1
+		# 		#if val < 2.0:
+		# 		#	self.val = 2.0
 
-					self.val = self.val + step_interval * 4.0
+		# 		val_interval = val - self.val
 
-					#print(self.val)
+		# 		if val_interval >=4.0:
+		# 			step_interval = (int)(val_interval / 4.0)
+		# 			#print(step_interval)
+		# 			for x in range(0, step_interval):
+		# 				self.serial_port.write("p")  #step on
+		# 				self.step_count += 1
 
-			else:
-				if self.antispring_step == 1:
-					self.antispring_step = 0
-					#print(self.step_count)
-					#for x in range(0, self.step_count):
-					for x in range(0, 1):
-						self.serial_port.write("e")
+		# 			self.val = self.val + step_interval * 4.0
+
+		# 			#print(self.val)
+
+		# 	else:
+		# 		if self.antispring_step == 1:
+		# 			self.antispring_step = 0
+		# 			#print(self.step_count)
+		# 			#for x in range(0, self.step_count):
+		# 			for x in range(0, 1):
+		# 				self.serial_port.write("e")
 					
-					#self.serial_port.write("r")
-					self.is_ready = 0
-						#time.sleep(0.015)
+		# 			#self.serial_port.write("r")
+		# 			self.is_ready = 0
+		# 				#time.sleep(0.015)
 
-					self.step_count = 0
+		# 			self.step_count = 0
 
-				self.val = 20.0#val
+		# 		self.val = 20.0#val
 
