@@ -34,12 +34,32 @@ from matplotlib.widgets import Button
 
 mMotor = motor()
 
+from s_data_storage import data_storage
+mDataStorage = data_storage()
+
+isRecording = False
+
 axis_span = 1000
 
 #initilize the channle buffers
-ch0_buf = deque(0 for _ in range(axis_span))
-ch1_buf = deque(0 for _ in range(axis_span))
+#ch0_buf = deque(0 for _ in range(axis_span))
+#ch1_buf = deque(0 for _ in range(axis_span))
+
 avg = 0
+
+
+#study parameters
+total_profiles = 6
+profile_repeat = 5
+total_trials = 30 # 6 profile * 5 repeat
+current_trial = 0
+pause = True
+person = 0
+block = 0
+profile_index = 0
+user_action_count = 0
+trial_start_temp = 0
+trial_end_temp = 0
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -105,14 +125,14 @@ def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
     return ind
 
 peak_list = []
-peak_x = []
-peak_y = []
-valley_x = []
-valley_y = []
+#peak_x = []
+#peak_y = []
+#valley_x = []
+#valley_y = []
 topanddown = 1
 
-stop_x = []
-stop_y = []
+#stop_x = []
+#stop_y = []
 
 base_angle = 0
 temp_angle = 0
@@ -147,7 +167,7 @@ direction_test_timer = 0
 reading_direction = 1
 
 
-predict_span = 10
+predict_span = 200
 
 running_mode = 2 # 1 -> reset  2-> no reset
 
@@ -213,8 +233,14 @@ def AddValue(serial_port, val):
     global r_count
     global running_threshold
     
-    ch0_buf.append(val)
-    ch0_buf.popleft()
+    #ch0_buf.append(val)
+    #ch0_buf.popleft()
+
+    #study parameters
+    global current_trial
+    global block
+    global profile_index
+    global user_action_count
     
     """
     avg = avg + 0.1*(val-avg)
@@ -241,6 +267,14 @@ def AddValue(serial_port, val):
             if running == False:
                 running = True
                 direction_test_timer = 0
+
+
+                #a start
+                if isRecording:
+
+                    user_action_count+=1
+                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                    mDataStorage.add_sample(time.time(), total_angle, 0, 2, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
             #wait for span/2 frames
             #reading_direction must be 1
@@ -322,7 +356,7 @@ def AddValue(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    print("             %s"%a_sensor_state)
+                    #print("             %s"%a_sensor_state)
 
                     """
                     temp_st = detectState(val, state_cut_up, state_cut_down)
@@ -338,8 +372,15 @@ def AddValue(serial_port, val):
                         total_angle = 0
 
                     #record stop points
-                    stop_x.append(axis_span)
-                    stop_y.append(val)
+                    #stop_x.append(axis_span)
+                    #stop_y.append(val)
+
+
+                    #a stop
+                    if isRecording:
+
+                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                        mDataStorage.add_sample(time.time(), total_angle, 0, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
         
        
@@ -387,8 +428,8 @@ def AddValue(serial_port, val):
             """
 
         if val==hard_peak:
-            peak_x.append(axis_span)
-            peak_y.append(hard_peak)
+            #peak_x.append(axis_span)
+            #peak_y.append(hard_peak)
             temp_peak = hard_peak
             
             del peak_list[:]
@@ -430,8 +471,8 @@ def AddValue(serial_port, val):
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            peak_x.append(axis_span)
-            peak_y.append(peak_list[filter_peaks[-1]])
+            #peak_x.append(axis_span)
+            #peak_y.append(peak_list[filter_peaks[-1]])
             del peak_list[:]
             topanddown = -1
 
@@ -572,6 +613,7 @@ def AddValue(serial_port, val):
         #if mMotor.trigger_state > 0:
         mMotor.get_angle(total_angle)
 
+"""
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
             peak_x[itrx] = peak_x[itrx] - 1
@@ -582,13 +624,18 @@ def AddValue(serial_port, val):
         for itrx in range(len(valley_x)):
             valley_x[itrx] = valley_x[itrx] - 1
 
+    
     if len(stop_x) > 0:
         for itrx in range(len(stop_x)):
             stop_x[itrx] = stop_x[itrx] - 1
-
+"""
     #print(peak_x)
 
-    
+    #add sample per frame
+    #if isRecording:
+        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+    #    mDataStorage.add_sample(time.time(), total_angle, 0, 0, block, current_trial, profile_index, 0, 0, 0, 0, 0)
+
 
 
 
@@ -606,8 +653,8 @@ def AddValue_Ch1(val):
     global predict_span
     global running_threshold
     
-    ch1_buf.append(val)
-    ch1_buf.popleft()
+    #ch1_buf.append(val)
+    #ch1_buf.popleft()
 
     prev_val_ch1.append(val)
     if len(prev_val_ch1) > predict_span:
@@ -661,15 +708,21 @@ def serial_read():
 
 #############################################################################################
 
-#study parameters
-total_profiles = 6
-profile_repeat = 5
-total_trials = 30 # 6 profile * 5 repeat
-current_trial = 0
-pause = True
+
 
 def main():
-
+    global current_trial
+    global pause
+    global total_angle
+    global temp_angle
+    global base_angle
+    global isRecording
+    global block
+    global person
+    global profile_index
+    global user_action_count
+    global trial_start_temp
+    global trial_end_temp
 
     #take user input
     person = raw_input('Enter participant number: ')
@@ -683,13 +736,7 @@ def main():
         for itrr in range(profile_repeat):
             trials.append(itrt)
 
-    #print(trials)
-    global current_trial
-    global pause
-    global total_angle
-    global temp_angle
-    global base_angle
-
+ 
 
     #t = threading.Thread(target=serial_read)
     #t.start()
@@ -700,15 +747,15 @@ def main():
     #mSpeech.start()
 
     def close_event():
+        global person
         #mMotor.close()
         #mMotor.join()
         #t.do_run = False
         #t.join()
 
         #save data
-        print("data saved")
-
-
+        isRecording = False
+        mDataStorage.save(person, time.time())
         exit()
 
 
@@ -720,6 +767,12 @@ def main():
     def press(event):
         global current_trial
         global pause
+        global isRecording
+        global profile_index
+        global user_action_count
+        global trial_start_temp
+        global trial_end_temp
+        global person
         #mMotor.write_serial(event.key)
         if event.key == ' ':
             pause^=True
@@ -734,6 +787,12 @@ def main():
                     #mMotor.set_profile(profile_index)
                     trials.remove(profile_index)
 
+                    #start data recording
+                    isRecording = True
+                    trial_start_temp = time.time()
+                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                    mDataStorage.add_sample(trial_start_temp, total_angle, 0, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+
                     """
                     idx = randint(0, 6)  #text index
                     show_text.set_text(text_pool[idx])
@@ -743,6 +802,17 @@ def main():
 
                     show_text.set_color(color_pool[idxc])
                     """
+            if pause:
+                #calcuate the result
+                trial_end_temp = time.time()
+                trial_duration = trial_end_temp - trial_start_temp
+                #save to data
+                #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, 0, 0, 0)
+                user_action_count = 0
+                #stop data recording
+                isRecording = False
+
         
         if event.key == 'q':
             #close

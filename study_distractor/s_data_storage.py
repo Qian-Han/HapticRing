@@ -40,14 +40,16 @@ class data_storage(object):
 		datasample = data_sample(_timestamp, _angle, _force, _event, _block, _trial, _profile, _count, _duration, _profile_result, _distractor, _distractor_result)
 		self.samples.append(datasample)
 
-	def save(self):
-		with open('data.csv', 'w') as csvfile:
+	def save(self, user, temp):
+		with open('data_%s_%s.csv'%(user, temp), 'w') as csvfile:
 		    fieldnames = ['timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result']
 		    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 		    writer.writeheader()
 
 		    for data in self.samples:
 		    	writer.writerow(data.tocvs())
+
+			print("data saved")
 
 
 """
