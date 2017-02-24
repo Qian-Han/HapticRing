@@ -1,6 +1,7 @@
 import serial
 import numpy as np
 from threading import Thread
+import threading
 import time
 
 class proximity(Thread):
@@ -11,7 +12,7 @@ class proximity(Thread):
 		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
 
 		self.prox_read = 0
-
+		self.read_val = 0
 
 	def read_value(self):
 		"""
@@ -27,4 +28,17 @@ class proximity(Thread):
 
 		self.serial_port.write('g')
 
-		return int(self.serial_port.readline())
+
+		while True:
+			try:
+				self.prox_read = int(self.serial_port.readline())
+				break
+			except ValueError:
+				continue
+
+		return self.prox_read  #int(self.serial_port.readline())
+
+	def close(self):
+		while self.serial_port.inWaiting():
+			self.read_val = self.serial_port.read(self.serial_port.inWaiting())
+			print("IR Read:%s" % (binascii.hexlify(self.read_val)))

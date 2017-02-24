@@ -173,6 +173,9 @@ predict_span = 200
 running_mode = 1 # 1 -> reset  2-> no reset
 
 
+mproxity_read = 0
+
+
 def detectRunning(val_list):
     return np.std(val_list)
 
@@ -233,6 +236,7 @@ def AddValue(serial_port, val):
     global predict_span
     global r_count
     global running_threshold
+    global mproxity_read
     
     ch0_buf.append(val)
     ch0_buf.popleft()
@@ -583,9 +587,9 @@ def AddValue(serial_port, val):
         if total_angle < 0:
             total_angle = 0
 
-        #mproxity_read = mProximity.read_value()
-        #mMotor.get_angle(total_angle, mproxity_read)   
-        #print(mproxity_read)
+        mproxity_read = mProximity.read_value()
+        mMotor.get_angle(total_angle, mproxity_read)   
+        print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
@@ -689,11 +693,11 @@ def serial_read():
         pass
 
     
-    """
+    
     while serial_port.inWaiting():
         read_val = serial_port.read(serial_port.inWaiting())
-        print("Read:%s" % (binascii.hexlify(read_val)))
-    """
+        print("Hall Read:%s" % (binascii.hexlify(read_val)))
+    
     serial_port.close()
     print('existing...')
     exit()
@@ -719,9 +723,15 @@ def main():
     def handle_close(evt):
         mMotor.close()
         mMotor.join()
-        mProximity.join()
+
+        
         t.do_run = False
         t.join()
+
+
+        mProximity.close()
+        mProximity.join()
+
 
 
 
