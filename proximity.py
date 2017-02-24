@@ -14,9 +14,9 @@ class proximity(Thread):
 		self.prox_read = 0
 		self.read_val = 0
 
-		t = threading.currentThread()
+		self.t = threading.currentThread()
 
-        while getattr(t, "do_run", True):  
+        while getattr(self.t, "do_run", True):  
         	self.serial_port.write('g')
         	self.prox_read = int(self.serial_port.readline())
 
