@@ -36,9 +36,18 @@ class proximity(Thread):
 			except ValueError:
 				continue
 
-		return self.prox_read  #int(self.serial_port.readline())
+		#return self.prox_read  #int(self.serial_port.readline())
 
 	def close(self):
 		while self.serial_port.inWaiting():
 			self.read_val = self.serial_port.read(self.serial_port.inWaiting())
 			print("IR Read:%s" % (binascii.hexlify(self.read_val)))
+
+
+	def read_value_thread(self):
+		t1 = Thread(target = self.read_value)
+
+		t1.start()
+		t1.join()
+
+		return self.prox_read 

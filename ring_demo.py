@@ -587,7 +587,7 @@ def AddValue(serial_port, val):
         if total_angle < 0:
             total_angle = 0
 
-        mproxity_read = mProximity.read_value()
+        mproxity_read = mProximity.read_value_thread()
         mMotor.get_angle(total_angle, mproxity_read)   
         print(mproxity_read)
 
