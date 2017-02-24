@@ -99,11 +99,11 @@ void loop(){
       break;
 
       case '/':
-      wallUp();
+      slowup();
       break;
 
       case '.':
-      wallDown();
+      slowdown();
       break;
 
       case ';':
@@ -113,6 +113,7 @@ void loop(){
       case 'm':                      
       minimumStepDownXS();
       break;
+
 
       case 'z':                      
       minimumStepDownS();
@@ -181,6 +182,19 @@ void getReady2(){
 }
 
 
+void slowup()
+{
+  move(1, 120, 1);
+  //delay(1000);
+  //Stop();
+}
+
+void slowdown()
+{
+  move(1, 120, 0);
+  //delay(1000);
+  //Stop();
+}
 
 
 void knobStepOn(){    

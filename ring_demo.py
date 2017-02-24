@@ -33,6 +33,9 @@ from matplotlib.widgets import Button
 mMotor = motor()
 
 
+from proximity import proximity
+mProximity = proximity()
+
 axis_span = 1000
 
 #initilize the channle buffers
@@ -579,7 +582,10 @@ def AddValue(serial_port, val):
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
         if total_angle < 0:
             total_angle = 0
-        mMotor.get_angle(total_angle)   
+
+        #mproxity_read = mProximity.read_value()
+        #mMotor.get_angle(total_angle, mproxity_read)   
+        #print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
@@ -707,10 +713,13 @@ def main():
     t.start()
 
     mMotor.start()
+    mProximity.start()
+
 
     def handle_close(evt):
         mMotor.close()
         mMotor.join()
+        mProximity.join()
         t.do_run = False
         t.join()
 
