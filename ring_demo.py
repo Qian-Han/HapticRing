@@ -359,7 +359,8 @@ def AddValue(serial_port, val):
                     #del prev_val_ch1[:]
                     """
 
-                    if running_mode == 1 and total_angle > 300:
+                    # if running_mode == 1 and total_angle > 300:
+                    if running_mode == 1 and total_angle > 180:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
@@ -584,7 +585,7 @@ def AddValue(serial_port, val):
 
     
 
-    if firstTopOrBottom == False and running_mode == 1: #auto reset
+    if running_mode == 1: #auto reset
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
         if total_angle < 0:
             total_angle = 0
@@ -602,7 +603,7 @@ def AddValue(serial_port, val):
         
 
         pre_total_angle = total_angle 
-        #print(mproxity_read)
+        print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
