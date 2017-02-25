@@ -53,6 +53,8 @@ class motor(Thread):
 
 		self.first_move = True
 
+		self.action_stop = False
+
 
 	def close(self):
 		self.serial_port.close()
@@ -65,6 +67,14 @@ class motor(Thread):
 
 	# def tune_down(self, event):
 	# 	self.serial_port.write("z")
+
+	def set_action_stop(self, angle):
+			
+		if self.trigger_state == 6 and (self.spring_step == 1 or self.spring_step == 0):
+			self.action_stop = True
+
+		if self.trigger_state == 6 and self.spring_step == 1:
+			self.val = angle
 
 	def reset(self, target):
 		self.trigger_state = 10  #to reset
@@ -142,14 +152,14 @@ class motor(Thread):
 		#print(self.trigger_state)
 
 
-	def tick_fast(self, event):
-		self.trigger_state = 7
-		for i in range(0,3):
-			self.serial_port.write("c")	
-		self.is_ready = 1
-		self.tick_step = 0
-		self.step_count = 0
-		print(self.trigger_state)
+	# def tick_fast(self, event):
+	# 	self.trigger_state = 7
+	# 	for i in range(0,3):
+	# 		self.serial_port.write("c")	
+	# 	self.is_ready = 1
+	# 	self.tick_step = 0
+	# 	self.step_count = 0
+	# 	print(self.trigger_state)
 
 
 	# def knob(self, event):
@@ -495,24 +505,53 @@ class motor(Thread):
 			"""
 
 			if self.trigger_state == 6:  #bump
+				if val > self.action_start and val < self.action_end: 
+					if self.action_stop:
+						if self.spring_step == 0 or self.spring_step == 1:
+							if val - self.val > 20:
+								self.spring_step = 2
+								print("going down")
+								for i in range(0,3):
+									self.serial_port.write("c")
+								self.serial_port.write("z")
 
-				if val > (self.action_end - 3.0) and val < self.action_end:
-					if self.spring_step == 0:
-						self.spring_step = 1
+								self.time_tag = time.time()	
 
-						for i in range(0,4):
-							self.serial_port.write("c")
+						if self.spring_step == 2:
+							if time.time() - self.time_tag > 0.3:
 
-						self.time_tag = time.time()	
+								print("going up")
+								self.spring_step = 1
+								for i in range(0,3):
+									self.serial_port.write("e")
+								self.serial_port.write("q")
+
+								self.action_stop = False
 						
-				elif val >= 0 and val < 40:
-					if self.spring_step == 1:
+				elif val >= 0 and val < 5:
+					if self.spring_step == 1 or self.spring_step == 2:
+						self.reset(6)
+						self.spring_step = 0
+
+					self.val = self.action_start
+
+				# if val > (self.action_end - 3.0) and val < self.action_end:
+				# 	if self.spring_step == 0:
+				# 		self.spring_step = 1
+
+				# 		for i in range(0,4):
+				# 			self.serial_port.write("c")
+
+				# 		self.time_tag = time.time()	
+						
+				# elif val >= 0 and val < 40:
+				# 	if self.spring_step == 1:
 						
 		
-						#hold for 2 seconds
-						if time.time() - self.time_tag > 0.5:
-							self.reset(6)
-							self.spring_step = 0
+				# 		#hold for 2 seconds
+				# 		if time.time() - self.time_tag > 0.5:
+				# 			self.reset(6)
+				# 			self.spring_step = 0
 
 
 """

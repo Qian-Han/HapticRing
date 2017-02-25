@@ -365,6 +365,8 @@ def AddValue(serial_port, val):
                         temp_angle = 0
                         total_angle = 0
 
+                    mMotor.set_action_stop(total_angle)
+
                     #record stop points
                     stop_x.append(axis_span)
                     stop_y.append(val)
@@ -603,7 +605,7 @@ def AddValue(serial_port, val):
         
 
         pre_total_angle = total_angle 
-        print(mproxity_read)
+        #print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
