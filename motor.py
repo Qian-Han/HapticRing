@@ -42,7 +42,7 @@ class motor(Thread):
 		self.wall_step_on = 0
 		self.wall_ang = [270.0, 90.0]
 
-		self.pthreshold_up = 265
+		self.pthreshold_up = 290
 		self.pthreshold_down = 260
 
 		self.action_start = 20  #5 degree
@@ -86,6 +86,7 @@ class motor(Thread):
 		self.trigger_state = 10
 		self.target_state = 1
 		self.is_ready = 0
+		self.spring_step = 0
 		#self.serial_port.write("c")	
 		#self.serial_port.write("e")	
 		#print(self.trigger_state)
@@ -95,6 +96,7 @@ class motor(Thread):
 		self.trigger_state = 10
 		self.target_state = 2
 		self.is_ready = 0
+		self.spring_step = 0
 
 		#for i in range(0,5):
 		#	self.serial_port.write("c")	
@@ -104,36 +106,37 @@ class motor(Thread):
 		self.trigger_state = 10
 		self.target_state = 3
 		self.is_ready = 0
-
+		self.spring_step = 0
 
 
 
 	def spring(self, event):
-		self.trigger_state = 4
-		self.serial_port.write("|")	
-		self.is_ready = 1
-		self.step_count = 0
+		self.trigger_state = 10
+		self.target_state = 4
+
+
+		#self.is_ready = 1
+		#self.step_count = 0
 		self.spring_step = 0
-		print(self.trigger_state)
+		#print(self.trigger_state)
 
 	def antispring(self, event):
-		self.trigger_state = 5
-		# self.serial_port.write("c")	
-		# self.serial_port.write("e")
-		self.serial_port.write("g")		
-		self.is_ready = 1
-		self.step_count = 0
-		self.antispring_step = 0
-		print(self.trigger_state)
+		self.trigger_state = 10
+		self.target_state = 5		
+		self.is_ready = 0
+		self.spring_step = 0
+		#self.step_count = 0
+		#self.antispring_step = 0
+		#print(self.trigger_state)
 
 	def tick_bump(self, event):
-		self.trigger_state = 6
-		for i in range(0,3):
-			self.serial_port.write("c")	
-		self.is_ready = 1
-		self.tick_step = 0
-		self.step_count = 0
-		print(self.trigger_state)
+		self.trigger_state = 10
+		self.target_state = 6
+		self.spring_step = 0
+		#self.is_ready = 0
+		#self.tick_step = 0
+		#self.step_count = 0
+		#print(self.trigger_state)
 
 
 	def tick_fast(self, event):
@@ -175,7 +178,7 @@ class motor(Thread):
 
 
 	def get_angle(self, val, pval):  #pval for proximtiy value
-
+		#print(val)
 		#back to the reset position
 		if self.trigger_state == 10:
 			if pval > self.pthreshold_up and self.motor_moving == 0:
@@ -194,6 +197,14 @@ class motor(Thread):
 				self.serial_port.write("s")
 				print("stop called")
 				self.motor_moving = 0
+
+			elif pval > self.pthreshold_down and pval < self.pthreshold_up:
+				self.trigger_state = self.target_state
+				self.target_state = 0
+				self.serial_port.write("s")
+				print("stop called")
+				self.motor_moving = 0
+
 
 
 		#if self.trigger_state == 1: #noforce
@@ -247,10 +258,14 @@ class motor(Thread):
 
 		elif self.trigger_state == 2: #force
 
-			if val.is_ready == 0:
-				for i in range(0,3):
-					self.serial_port.write("c")	
-				val.is_read = 1
+			if self.is_ready == 0:
+				#for i in range(0,1):
+				self.serial_port.write("c")
+				self.serial_port.write("x")
+				self.serial_port.write("x")
+				self.serial_port.write("z")
+				self.serial_port.write("z")	
+				self.is_ready = 1
 
 			else:
 				if val > self.action_start and val < self.action_end:
@@ -268,66 +283,57 @@ class motor(Thread):
 
 		if self.trigger_state == 3: #stop
 
-			if val > (self.action_end - 10.0) and val < self.action_end:
+			if val > (self.action_end - 3.0) and val < self.action_end:
 				if self.spring_step == 0:
 					self.spring_step = 1
 
-					for i in range(0,5):
+					for i in range(0,4):
 						self.serial_port.write("c")
 
 					self.time_tag = time.time()	
 					
-			elif val >= 0 and val < 2:
+			elif val >= 0 and val < 40:
 				if self.spring_step == 1:
-					self.spring_step = 0
+					
 	
 					#hold for 2 seconds
 					if time.time() - self.time_tag > 2:
 						self.reset(3)
+						self.spring_step = 0
+
 
 
 
 		if self.trigger_state == 4: #spring
 
-			if val > 5.0 and val < 80.0:
+			if val > self.action_start and val < self.action_end:
 				if self.spring_step == 0:
 					self.spring_step = 1
 
-				self.max_per_rotation = val
+				#self.max_per_rotation = val
 					
 
 				val_interval = val - self.val
 
-				if val_interval >=3.0:
-					step_interval = (int)(val_interval / 3.0)
-					#print(step_interval)
+				if val_interval >=4.0:
+					step_interval = (int)(val_interval / 4.0)
+					print(step_interval)
 					for x in range(0, step_interval):
 						self.serial_port.write("m")  #step down
-						self.step_count += 1
+						#self.step_count += 1
 
-					self.val = self.val + step_interval * 3.0
+					self.val = self.val + step_interval * 4.0
 
 					#print(self.val)
 
 			elif val >= 0 and val < 5:
 				if self.spring_step == 1:
 					self.spring_step = 0
-					print(self.step_count)
-					#for x in range(0, self.step_count):
-					
-					if self.max_per_rotation > 70:
-						self.serial_port.write("r")
-						# time.sleep(0.5)
-						self.serial_port.write("|")
-						#self.serial_port.write("r")
-					else:
-						for x in range(0, self.step_count):
-							self.serial_port.write("p")
+					self.reset(4)
 
-					self.max_per_rotation = 0
-					self.step_count = 0
+				self.val = self.action_start - 2
 
-				self.val = 5.0#val
+			
 
 
 
@@ -335,6 +341,46 @@ class motor(Thread):
 
 
 		if self.trigger_state == 5: #antipring
+			if self.is_ready == 0:
+				#for i in range(0,1):
+				self.serial_port.write("c")
+				self.serial_port.write("x")
+				self.serial_port.write("x")
+				self.serial_port.write("x")
+				self.serial_port.write("z")	
+				self.is_ready = 1
+
+			else:
+
+				if val > self.action_start and val < self.action_end:
+					if self.spring_step == 0:
+						self.spring_step = 1
+
+					#self.max_per_rotation = val
+						
+
+					val_interval = val - self.val
+
+					if val_interval >=5.0:
+						step_interval = (int)(val_interval / 5.0)
+						print(step_interval)
+						for x in range(0, step_interval):
+							self.serial_port.write("p")  #step down
+							#self.step_count += 1
+
+						self.val = self.val + step_interval * 5.0
+
+						#print(self.val)
+
+				elif val >= 0 and val < 5:
+					if self.spring_step == 1:
+						self.spring_step = 0
+						self.reset(5)
+
+					self.val = self.action_start - 2
+
+
+		"""
 
 			if val > 5.0 and val < 80.0:
 				if self.spring_step == 0:
@@ -376,14 +422,61 @@ class motor(Thread):
 					self.step_count = 0
 
 				self.val = 5.0#val
+			"""
 
 
 
 
-
+		"""
 
 		if self.trigger_state == 6: #bump or Tick
+			if val > (self.action_end - 40.0) and val < (self.action_end - 30.0):
+				if self.spring_step == 0:
+					self.spring_step = 1
+					print("going down")
+					for i in range(0,4):
+						self.serial_port.write("c")
 
+					self.time_tag = time.time()	
+
+			elif val > (self.action_end - 15.0):
+				if self.spring_step == 1:
+					if time.time() - self.time_tag > 0.5:
+						self.spring_step = 2
+						print("going up")
+						for i in range(0, 4):
+							self.serial_port.write("e")
+
+			elif val >= 0 and val < 5:
+				if self.spring_step == 2 or self.spring_step == 1:
+					print("reset")
+					self.spring_step = 0
+					self.reset(6)
+
+		"""
+
+		if self.trigger_state == 6:  #bump
+
+			if val > (self.action_end - 3.0) and val < self.action_end:
+				if self.spring_step == 0:
+					self.spring_step = 1
+
+					for i in range(0,4):
+						self.serial_port.write("c")
+
+					self.time_tag = time.time()	
+					
+			elif val >= 0 and val < 40:
+				if self.spring_step == 1:
+					
+	
+					#hold for 2 seconds
+					if time.time() - self.time_tag > 0.5:
+						self.reset(6)
+						self.spring_step = 0
+
+
+"""
 			if val > 38.0 and val < 40.0:
 				if self.spring_step == 0:
 					self.spring_step = 1
@@ -402,7 +495,7 @@ class motor(Thread):
 					for i in range(0,2):
 						self.serial_port.write("e")
 						self.serial_port.write("w")		
-
+"""
 
 
 

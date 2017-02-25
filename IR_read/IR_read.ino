@@ -5,13 +5,15 @@ void setup() {
 }
 
 void loop(){
-  /*
+  
   int a = analogRead(A0);
 
    //Show raw picture
   Serial.println(a);  
-*/
 
+  delay(1);
+
+/*
   if (Serial.available()>0)
   {
     state = Serial.read();
@@ -22,6 +24,7 @@ void loop(){
       Serial.println(a);
     }
   }
+  */
 }
 
 

@@ -33,8 +33,8 @@ from matplotlib.widgets import Button
 mMotor = motor()
 
 
-from proximity import proximity
-mProximity = proximity()
+#from proximity import proximity
+#mProximity = proximity()
 
 axis_span = 1000
 
@@ -139,6 +139,7 @@ base_angle = 0
 temp_angle = 0
 offset_angle = 0
 total_angle = 0
+pre_total_angle = 0
 
 firstTopOrBottom = True
 goingup = True
@@ -219,6 +220,7 @@ def AddValue(serial_port, val):
     global temp_peak
     global temp_valley
     global total_angle
+    global pre_total_angle
     global offset_angle
     global goingup
     global reachingPeak
@@ -357,7 +359,7 @@ def AddValue(serial_port, val):
                     #del prev_val_ch1[:]
                     """
 
-                    if running_mode == 1:
+                    if running_mode == 1 and total_angle > 300:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
@@ -588,9 +590,19 @@ def AddValue(serial_port, val):
             total_angle = 0
 
         #mproxity_read = mProximity.read_value_thread()
-        mproxity_read = mProximity.prox_read
-        mMotor.get_angle(total_angle, mproxity_read)   
-        print(mproxity_read)
+        #mproxity_read = mProximity.prox_read
+
+
+        if total_angle < pre_total_angle:
+            #total_angle = pre_total_angle
+            
+            mMotor.get_angle(pre_total_angle, mproxity_read)  
+        else:
+            mMotor.get_angle(total_angle, mproxity_read)  
+        
+
+        pre_total_angle = total_angle 
+        #print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         #print("base%s, temp%s"%(base_angle, temp_angle))
@@ -704,6 +716,32 @@ def serial_read():
     exit()
 
 
+
+def SetIRValue(val):
+    global mproxity_read
+
+    mproxity_read = val
+
+
+def ir_read():
+    ir = threading.currentThread()
+
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+
+    try:
+        while getattr(ir, "do_run", True):
+            read_val = serial_port.readline()
+            SetIRValue(int(read_val))
+
+
+    except ValueError:
+        pass
+
+    while serial_port.inWaiting():
+        read_val = serial_port.read(serial_port.inWaiting())
+        print("ir Read:%s" % (binascii.hexlify(read_val)))
+    
+    serial_port.close()
 #############################################################################################
 
 
@@ -714,11 +752,15 @@ def main():
     global temp_angle
     global base_angle
 
+
+    ir = threading.Thread(target=ir_read)
+    ir.start()
+
+
     t = threading.Thread(target=serial_read)
     t.start()
 
     mMotor.start()
-    mProximity.start()
 
 
     def handle_close(evt):
@@ -729,9 +771,8 @@ def main():
         t.do_run = False
         t.join()
 
-
-        mProximity.close()
-        mProximity.join()
+        ir.do_run = False
+        ir.join()
 
 
 
@@ -765,24 +806,94 @@ def main():
     axtick_bump = plt.axes([0.75- 0.1, 0.01, 0.12, 0.05])
     # axtick_fast = plt.axes([0.87- 0.1, 0.01, 0.12, 0.05])
 
+    def click_noforce(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.noforce(event)
+
+        print("noforce clicked")  
+
+    def click_force(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.force(event)
+
+        print("force clicked")
+
+    def click_stop(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.stop(event)
+
+        print("stop clicked")
+
+
+    def click_spring(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.spring(event)
+
+        print("spring clicked")  
+
+    def click_antispring(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.antispring(event)
+
+        print("antispring clicked")
+
+    def click_tick_bump(event):
+        global base_angle
+        global temp_angle
+        global total_angle
+        base_angle = 0
+        temp_angle = 0
+        total_angle = 0
+        mMotor.tick_bump(event)
+
+        print("tick_bump clicked")
+
+
+
 
     bnoforce = Button(axnoforce, 'No Force')
-    bnoforce.on_clicked(mMotor.noforce)
+    bnoforce.on_clicked(click_noforce)
 
     bforce = Button(axforce, 'Force')
-    bforce.on_clicked(mMotor.force)
+    bforce.on_clicked(click_force)
 
     bstop = Button(axstop, 'Stop')
-    bstop.on_clicked(mMotor.stop)
-
-    bantispring = Button(axantispring, 'Anti-Spring')
-    bantispring.on_clicked(mMotor.antispring)
+    bstop.on_clicked(click_stop)
 
     bspring = Button(axspring, 'Spring')
-    bspring.on_clicked(mMotor.spring)
+    #bspring.on_clicked(mMotor.spring)
+    bspring.on_clicked(click_spring)
+
+    bantispring = Button(axantispring, 'Anti-Spring')
+    bantispring.on_clicked(click_antispring)
 
     btick_bump = Button(axtick_bump, 'Tick_bump')
-    btick_bump.on_clicked(mMotor.tick_bump)
+    btick_bump.on_clicked(click_tick_bump)
 
     # btick_fast = Button(axtick_fast, 'Tick_fast')
     # btick_fast.on_clicked(mMotor.tick_fast)

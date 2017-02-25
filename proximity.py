@@ -13,12 +13,6 @@ class proximity(Thread):
 
 		self.prox_read = 0
 		self.read_val = 0
-
-		
-
-        while True: 
-        	self.serial_port.write('g')
-        	self.prox_read = int(self.serial_port.readline())
         	
 
 

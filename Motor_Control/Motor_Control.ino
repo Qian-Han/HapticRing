@@ -184,14 +184,14 @@ void getReady2(){
 
 void slowup()
 {
-  move(1, 120, 1);
+  move(1, 150, 1);
   //delay(1000);
   //Stop();
 }
 
 void slowdown()
 {
-  move(1, 120, 0);
+  move(1, 150, 0);
   //delay(1000);
   //Stop();
 }
