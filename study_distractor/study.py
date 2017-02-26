@@ -202,6 +202,7 @@ def AddValue(serial_port, val):
     global temp_peak
     global temp_valley
     global total_angle
+    global pre_total_angle
     global offset_angle
     global goingup
     global reachingPeak
