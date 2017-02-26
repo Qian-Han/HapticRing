@@ -91,17 +91,17 @@ class motor(Thread):
 		print("6 - bump")
 
 	def set_profile(self, prof):
-		if prof == 0:  #no force
+		if prof == 1:  #no force
 			self.noforce()
-		elif prof == 1: #force
+		elif prof == 2: #force
 			self.force()
-		elif prof == 2:
-			self.stop()
 		elif prof == 3:
-			self.spring()
+			self.stop()
 		elif prof == 4:
-			self.antispring()
+			self.spring()
 		elif prof == 5:
+			self.antispring()
+		elif prof == 6:
 			self.tick_bump()
 
 	def get_angle(self, val, pval):  #pval for proximtiy value

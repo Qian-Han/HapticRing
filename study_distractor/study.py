@@ -798,7 +798,7 @@ def main():
                             show_text.set_color('b')
 
         if block == 2 or block == 4:
-            show_color_accuracy.set_text("color test accuracy: %s"%color_accuracy)
+            show_color_accuracy.set_text("color test accuracy: %1.1f"%color_accuracy)
             if color_accuracy > 80:
                 show_color_accuracy.set_color('b')
             else:
@@ -808,7 +808,7 @@ def main():
 
         show_trial.set_text("trial: %s/%s"%(current_trial, total_trials))
 
-        return [show_text, show_trial]
+        return [show_text, show_color_accuracy, show_trial]
 
     ani = animation.FuncAnimation(fig, animate, 100, 
                                   interval=2000, blit=True)  #20 delay, frames refresh 50 times per sec
