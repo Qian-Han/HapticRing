@@ -727,9 +727,9 @@ def main():
     show_participant = p1.text(0.1, 0.95, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     show_block = p1.text(0.5, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     if block == 1:
-        show_block.set_text('block: %s  sit  normal'%block)
+        show_block.set_text('block: %s  stand  normal'%block)
     elif block == 2:
-        show_block.set_text('block: %s  sit  distract'%block)
+        show_block.set_text('block: %s  stand  distract'%block)
     elif block == 3:
         show_block.set_text('block: %s  walk  normal'%block)
     elif block == 4:
