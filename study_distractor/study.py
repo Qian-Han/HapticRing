@@ -187,13 +187,15 @@ def detectState(val, up, down):
     return st
 
 def AddValue(serial_port, val):
+
+    global hard_valley
+    global hard_peak
+
     if val > hard_peak:
         val = hard_peak
     if val < hard_valley:
         val = hard_valley
 
-    global hard_valley
-    global hard_peak
     global avg
     global topanddown
     global base_angle
@@ -796,7 +798,7 @@ def main():
                             show_text.set_color('b')
 
         if block == 2 or block == 4:
-            show_color_accuracy.set_text("color test accuracy: %s%"%color_accuracy)
+            show_color_accuracy.set_text("color test accuracy: %s"%color_accuracy)
             if color_accuracy > 80:
                 show_color_accuracy.set_color('b')
             else:
