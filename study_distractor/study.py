@@ -6,12 +6,13 @@ import collections
 import serial
 import time
 import struct
-#import msvcrt
 from array import *
 import binascii
 import numpy as np
 from math import *
 from random import randint
+from collections import deque
+import threading
 
 import os
 os.environ['PYTHON_EGG_CACHE'] = '/tmp'
@@ -25,34 +26,24 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
-from collections import deque
-#threading
-import threading
-
-from s_motor import motor
 from matplotlib.widgets import Button
 
+from s_motor import motor
 mMotor = motor()
 
 from s_data_storage import data_storage
 mDataStorage = data_storage()
 
-isRecording = False
-
-axis_span = 1000
-
-#initilize the channle buffers
-#ch0_buf = deque(0 for _ in range(axis_span))
-#ch1_buf = deque(0 for _ in range(axis_span))
-
-avg = 0
-
+from playsound import playsound
 
 #study parameters
+isRecording = False
 total_profiles = 6
 profile_repeat = 5
 total_trials = 30 # 6 profile * 5 repeat
 current_trial = 0
+color_correct_trial = 0
+color_accuracy = 0
 pause = True
 person = 0
 block = 0
@@ -132,51 +123,43 @@ def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
     return ind
 
 peak_list = []
-#peak_x = []
-#peak_y = []
-#valley_x = []
-#valley_y = []
 topanddown = 1
-
-#stop_x = []
-#stop_y = []
-
 base_angle = 0
 temp_angle = 0
 offset_angle = 0
 total_angle = 0
-
+pre_total_angle = 0
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
-
 hard_peak = 680
 hard_valley = 300
-
 temp_peak = hard_peak
 temp_valley = hard_valley
-
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
 state_cut_ratio = 0.001
 state_cut_up = 0
 state_cut_down = 0
 b_sensor_dir = 1 #1-increase 2-decrease
-
 #running and notrunning
 running = False
 prev_val = [] #5 frames
 diff_prev_val = []
+prev_val_ch1 = []
+running_ch1 = False
 r_count = 0
 running_threshold = 7.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
 reading_direction = 1
-
-
 predict_span = 200
-
-running_mode = 2 # 1 -> reset  2-> no reset
+buffer_interval = 1000;
+running_mode = 1 # 1 -> reset  2-> no reset
+mproxity_read = 0
+profile_end_angle = 180
+profile_start_angle = 20
+profile_end_alert = False
 
 
 def detectRunning(val_list):
@@ -204,18 +187,15 @@ def detectState(val, up, down):
     return st
 
 def AddValue(serial_port, val):
-
-    global hard_valley
-    global hard_peak
-
     if val > hard_peak:
         val = hard_peak
     if val < hard_valley:
         val = hard_valley
 
+    global hard_valley
+    global hard_peak
     global avg
     global topanddown
-
     global base_angle
     global temp_angle
     global firstTopOrBottom
@@ -239,9 +219,10 @@ def AddValue(serial_port, val):
     global predict_span
     global r_count
     global running_threshold
-    
-    #ch0_buf.append(val)
-    #ch0_buf.popleft()
+    global profile_end_angle
+    global profile_start_angle
+    global profile_end_alert
+    global mproxity_read
 
     #study parameters
     global current_trial
@@ -249,12 +230,6 @@ def AddValue(serial_port, val):
     global profile_index
     global user_action_count
     
-    """
-    avg = avg + 0.1*(val-avg)
-    ch1_buf.append(avg)
-    ch1_buf.popleft()
-    """
-
     peak_list.append(val)
 
     if len(peak_list) > 1000:
@@ -264,10 +239,7 @@ def AddValue(serial_port, val):
     if len(prev_val) > predict_span:
 
         prev_val.pop(0)
-
         std_value = detectRunning(prev_val)
-
-        #print(std_value)
         
         if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
@@ -275,13 +247,11 @@ def AddValue(serial_port, val):
                 running = True
                 direction_test_timer = 0
 
-
                 #a start
                 if isRecording:
-
                     user_action_count+=1
                     #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                    mDataStorage.add_sample(time.time(), total_angle, 0, 2, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+                    mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 2, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
             #wait for span/2 frames
             #reading_direction must be 1
@@ -296,21 +266,15 @@ def AddValue(serial_port, val):
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
 
-                        #print("ch1 dir: %s"%dir_ch1)
-
                         if dir_ch1 == 1:
                             running_clockwise = -1
-                            #a_sensor_state = 3
                         elif dir_ch1 == -1:
                             running_clockwise = 1
-                            #a_sensor_state = 1
 
                     elif a_sensor_state == 1:
                         a_sensor_state = 1
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
-
-                        #print("ch0 dir: %s"%dir_ch0)
 
                         if dir_ch0 == 1:
                             running_clockwise = -1
@@ -322,21 +286,16 @@ def AddValue(serial_port, val):
                     elif a_sensor_state == 2:
                         #see sensor 2
                         dir_ch1 = detectMovingDirection(prev_val_ch1)
-                        #print("ch1 dir: %s"%dir_ch1)
 
                         if dir_ch1 == 1:
                             running_clockwise = 1
-                            #a_sensor_state = 3
                         elif dir_ch1 == -1:
                             running_clockwise = -1
-                            #a_sensor_state = 1
 
                     elif a_sensor_state == 3:
                         a_sensor_state = 3
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val)
-
-                        #print("ch0 dir: %s"%dir_ch0)
 
                         if dir_ch0 == 1:
                             running_clockwise = 1
@@ -345,104 +304,38 @@ def AddValue(serial_port, val):
                             #topanddown = -1
 
                     reading_direction = 0  #got direction info
-
-                    running_clockwise = 1
-                    print(running_clockwise)
-
-
-
-                
-                
-                
-
+                    running_clockwise = 1  #make sure there is no direction
         else:
-            #r_count = r_count + 1
-            #print(r_count)  #predict as not running
             if running_ch1 == False:
                 if running == True:
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    #print("             %s"%a_sensor_state)
+                    #a stop
+                    if isRecording:
+                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                        mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
-                    """
-                    temp_st = detectState(val, state_cut_up, state_cut_down)
-                    if temp_st != -1:
-                        a_sensor_state = temp_st
-
-                    #del prev_val_ch1[:]
-                    """
-
-                    if running_mode == 1:
+                    if running_mode == 1 and total_angle > profile_end_angle:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
 
-                    #record stop points
-                    #stop_x.append(axis_span)
-                    #stop_y.append(val)
+                        #a profile stop
+                        if isRecording:
+                            #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                            mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 4, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
+                    mMotor.set_action_stop(total_angle)
 
-                    #a stop
-                    if isRecording:
-
-                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                        mDataStorage.add_sample(time.time(), total_angle, 0, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
-
-        
-       
-        
-    #running or not
-    #print(running)
-    #print("             %s"%(val))
-
+                    
 
     if topanddown == 1:
-        
-        """
-        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',
-                 kpsh=False, valley=False, show=False, ax=None)
-    
-        if len(filter_peaks)>0:  #found a peak
-            peak_x.append(axis_span)
-            peak_y.append(peak_list[filter_peaks[-1]])
-            temp_peak = peak_list[filter_peaks[-1]]
-            goingup = False
-            del peak_list[:]
-            topanddown = 2
-
-            #angle cal
-            if firstTopOrBottom:
-                base_angle = 0
-                temp_angle = 0
-                firstTopOrBottom = False
-                #initial closewise, see sensor 2
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = 1 #-1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1
-
-            else:
-                base_angle += (20*running_clockwise)
-
-                temp_angle = 0
-                reachingPeak = True
-                state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
-
-            a_sensor_state = 0
-
-            """
-
         if val==hard_peak:
-            #peak_x.append(axis_span)
-            #peak_y.append(hard_peak)
             temp_peak = hard_peak
             
             del peak_list[:]
             topanddown = 2
-
-            #print(topanddown)
 
             #angle cal
             if firstTopOrBottom:
@@ -451,18 +344,9 @@ def AddValue(serial_port, val):
                 firstTopOrBottom = False
                 reachingPeak = True
                 a_sensor_state = 0
-                #initial closewise, see sensor 2
-                """
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = -1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1
-                """
 
             else:
                 base_angle += (20*running_clockwise)
-
                 temp_angle = 0
                 reachingPeak = True
                 state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
@@ -470,20 +354,13 @@ def AddValue(serial_port, val):
             if reading_direction == 0:
                 a_sensor_state = 0
 
-            #print("sensor_state: %s" % a_sensor_state)
-
-
     elif topanddown == 2:  #detect the second top
         filter_peaks = detect_peaks(peak_list, mph=hard_peak-1, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=False, show=False, ax=None)
     
         if len(filter_peaks)>0:  #found a peak
-            #peak_x.append(axis_span)
-            #peak_y.append(peak_list[filter_peaks[-1]])
             del peak_list[:]
             topanddown = -1
-
-            #print(topanddown)
 
             goingup = False
             reachingPeak = False
@@ -495,49 +372,11 @@ def AddValue(serial_port, val):
                     a_sensor_state = 3
 
     elif topanddown == -1:
-
-        """
-        filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
-                 kpsh=False, valley=True, show=False, ax=None)
-
-        if len(filter_valleys)>0:  #found a valley
-            valley_x.append(axis_span)
-            valley_y.append(peak_list[filter_valleys[-1]])
-            temp_valley = peak_list[filter_valleys[-1]]
-            goingup = True
-            del peak_list[:]
-            topanddown = -2
-
-            if firstTopOrBottom:
-                base_angle = 0
-                temp_angle = 0
-                firstTopOrBottom = False
-                #initial closewise, see sensor 2
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = 1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1 #-1
-
-            else:
-                base_angle += (20*running_clockwise)
-                temp_angle = 0
-                reachingPeak = True
-                state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
-
-            a_sensor_state = 2
-        """
-
         if val == hard_valley:
-
-            valley_x.append(axis_span)
-            valley_y.append(hard_valley)
             temp_valley = hard_valley
             
             del peak_list[:]
             topanddown = -2
-
-            #print(topanddown)
 
             if firstTopOrBottom:
                 base_angle = 0
@@ -545,15 +384,6 @@ def AddValue(serial_port, val):
                 firstTopOrBottom = False
                 reachingPeak = True
                 a_sensor_state = 2
-                #initial closewise, see sensor 2
-
-                """
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = 1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1 #-1
-                """
 
             else:
                 base_angle += (20*running_clockwise)
@@ -564,16 +394,12 @@ def AddValue(serial_port, val):
             if reading_direction == 0:
                 a_sensor_state = 2
 
-            #print("sensor_state: %s" % a_sensor_state)
-
 
     elif topanddown == -2:
         filter_valleys = detect_peaks(peak_list, mph=-hard_valley-1, mpd=20, threshold=0, edge='falling',
                  kpsh=False, valley=True, show=False, ax=None)
 
         if len(filter_valleys)>0:  #found a valley
-            valley_x.append(axis_span)
-            valley_y.append(peak_list[filter_valleys[-1]])
             del peak_list[:]
             topanddown = 1
             goingup = True
@@ -584,8 +410,6 @@ def AddValue(serial_port, val):
                     a_sensor_state = 3
                 elif running_clockwise == -1:
                     a_sensor_state = 1
-
-            #print(topanddown)
 
     
     if reachingPeak ==  False:
@@ -600,8 +424,25 @@ def AddValue(serial_port, val):
 
     
 
-    if running and running_mode == 1: #auto reset
+    if running_mode == 1: #auto reset
         total_angle = base_angle + temp_angle * running_clockwise - offset_angle
+        if total_angle < 0:
+            total_angle = 0
+
+        if profile_end_alert == False:
+            if total_angle > profile_start_angle and total_angle < (profile_start_angle + 2.0):
+                profile_end_alert = True
+        else:
+            if total_angle > (profile_end_angle - 2):
+                playsound("ding2.wav")
+                profile_end_alert = False
+
+        if total_angle < pre_total_angle:
+            mMotor.get_angle(pre_total_angle, mproxity_read)  
+        else:
+            mMotor.get_angle(total_angle, mproxity_read)
+
+        pre_total_angle = total_angle 
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
@@ -616,60 +457,19 @@ def AddValue(serial_port, val):
             base_angle = 360
             temp_angle = 0
 
-
-        #if mMotor.trigger_state > 0:
         mMotor.get_angle(total_angle)
 
-"""
-    if len(peak_x)>0:
-        for itrx in range(len(peak_x)):
-            peak_x[itrx] = peak_x[itrx] - 1
-
-            #print(peak_x[itrx])
-
-    if len(valley_x) > 0:
-        for itrx in range(len(valley_x)):
-            valley_x[itrx] = valley_x[itrx] - 1
-
-    
-    if len(stop_x) > 0:
-        for itrx in range(len(stop_x)):
-            stop_x[itrx] = stop_x[itrx] - 1
-"""
-    #print(peak_x)
-
-    #add sample per frame
-    #if isRecording:
-        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-    #    mDataStorage.add_sample(time.time(), total_angle, 0, 0, block, current_trial, profile_index, 0, 0, 0, 0, 0)
-
-
-
-
-
-
-#variables for b sensor
-prev_val_ch1 = []
-running_ch1 = False
-
 def AddValue_Ch1(val):
-
-    #print("       %s"%(val))
     global prev_val_ch1
     global running_ch1
     global predict_span
     global running_threshold
-    
-    #ch1_buf.append(val)
-    #ch1_buf.popleft()
 
     prev_val_ch1.append(val)
     if len(prev_val_ch1) > predict_span:
         prev_val_ch1.pop(0)
 
         std_value_ch1 = detectRunning(prev_val_ch1)
-
-        #print("            %s" %(std_value_ch1))
 
         if std_value_ch1 > running_threshold:  #running
             if running_ch1 == False:
@@ -678,51 +478,66 @@ def AddValue_Ch1(val):
             if running_ch1 == True:
                 running_ch1 = False
 
-
 def serial_read():
+    global buffer_interval
     t = threading.currentThread()
+    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem621', baudrate=115200)
-    
-    sx = 0
     try:
         while getattr(t, "do_run", True):   
             read_val = serial_port.readline()
-            #split and reading
             read_val_list = [x.strip() for x in read_val.split(',')]
-            #print("read:%s"%(read_val))
-            if len(read_val_list) == 2:
-                AddValue(serial_port, int(read_val_list[0])) 
-                AddValue_Ch1(int(read_val_list[1]))         
 
-            #time.sleep(0.1)  # ~200Hz
-
+            if buffer_interval > 0:
+                buffer_interval -= 1
+            else:
+                if len(read_val_list) == 2:
+                    AddValue(serial_port, int(read_val_list[0])) 
+                    AddValue_Ch1(int(read_val_list[1]))         
 
     except ValueError:
         pass
 
-    
-    """
     while serial_port.inWaiting():
         read_val = serial_port.read(serial_port.inWaiting())
         print("Read:%s" % (binascii.hexlify(read_val)))
-    """
-    print("prepare threading exit")
+
     serial_port.close()
-    print('existing...')
-    
+    print('hall sensor serial existing...')
 
 
+def SetIRValue(val):
+    global mproxity_read
+    mproxity_read = val
+
+def ir_read():
+    ir = threading.currentThread()
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+    try:
+        while getattr(ir, "do_run", True):
+            read_val = serial_port.readline()
+            SetIRValue(int(read_val))
+    except ValueError:
+        pass
+
+    while serial_port.inWaiting():
+        read_val = serial_port.read(serial_port.inWaiting())
+        print("ir Read:%s" % (binascii.hexlify(read_val)))
+
+    serial_port.close()
+    print('ir sensor serial existing...')
 #############################################################################################
 
 
 
 def main():
-    global current_trial
-    global pause
     global total_angle
     global temp_angle
     global base_angle
+    global current_trial
+    global color_correct_trial
+    global color_accuracy
+    global pause
     global isRecording
     global block
     global person
@@ -753,38 +568,41 @@ def main():
                 continue
 
             print("condition: ", block)
-
             break
         except ValueError:
             print("not a valid number")
 
 
     trials = []
-    for itrt in range(total_profiles):
+    for itrt in range(1, total_profiles+1):
         for itrr in range(profile_repeat):
             trials.append(itrt)
 
- 
 
-
+    ir = threading.Thread(target=ir_read)
+    ir.start()
             
-    #t = threading.Thread(target=serial_read)
-    #t.start()
+    t = threading.Thread(target=serial_read)
+    t.start()
 
-    #mMotor.start()
-
-    #mSpeech = speech()
-    #mSpeech.start()
+    mMotor.start()
 
     def close_event():
         global person
-        #mMotor.close()
-        #mMotor.join()
-        #t.do_run = False
-        #t.join()
+        global isRecording
+
+        isRecording = False
+
+        mMotor.close()
+        mMotor.join()
+        
+        t.do_run = False
+        t.join()
+
+        ir.do_run = False
+        ir.join()
 
         #save data
-        isRecording = False
         mDataStorage.save(person, time.time())
         exit()
 
@@ -792,10 +610,10 @@ def main():
     def handle_close(event):
         close_event()
 
-
-
     def press(event):
         global current_trial
+        global color_correct_trial
+        global color_accuracy
         global pause
         global isRecording
         global profile_index
@@ -808,15 +626,16 @@ def main():
         global trial_answer_color
         global trial_duration
         global trial_distraction_correct
+        global base_angle
+        global temp_angle
+        global total_angle
 
         #mMotor.write_serial(event.key)
         if event.key == ' ':
             if ((block == 2 or block == 4) and (trial_isWaitingForAnswer == 1 or trial_isWaitingForAnswer == 2)) or ((block == 1 or block == 3) and (trial_isWaitingForAnswer == 1)):
                 print("expecting answers")
             else:
-
                 pause^=True
-
                 if not pause:
                     #randomly select a trial
                     if current_trial < total_trials:
@@ -824,7 +643,10 @@ def main():
                         
                         idxp = randint(0, (total_trials - current_trial)) #profile indx
                         profile_index = trials[idxp]
-                        #mMotor.set_profile(profile_index)
+                        base_angle = 0
+                        temp_angle = 0
+                        total_angle = 0
+                        mMotor.set_profile(profile_index)
                         trials.remove(profile_index)
 
                         #start data recording
@@ -834,38 +656,23 @@ def main():
 
                         trial_start_temp = time.time()
                         #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                        mDataStorage.add_sample(trial_start_temp, total_angle, 0, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+                        mDataStorage.add_sample(trial_start_temp, total_angle, mproxity_read, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
-                        """
-                        idx = randint(0, 6)  #text index
-                        show_text.set_text(text_pool[idx])
-                        idxc = randint(0, 6)  #color index
-                        while idxc == idx:
-                            idxc = randint(0, 6)
-
-                        show_text.set_color(color_pool[idxc])
-                        """
                 if pause:
                     #calcuate the result
                     trial_end_temp = time.time()
                     trial_duration = trial_end_temp - trial_start_temp
-
-                    #save to data
-                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                    #mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, 0, trial_distraction_correct, 0)
-                    
-                    
-                    #stop data recording
                     isRecording = False
 
                     if current_trial <= total_trials:
                         trial_isWaitingForAnswer = 1
 
-        
         elif event.key == 'q':
             #close
             plt.close(fig)
 
+        elif event.key == 'e' or event.key == 'c':
+            mMotor.write_serial(event.key)
 
         else:
             if block == 2 or block == 4:
@@ -876,13 +683,16 @@ def main():
                     except ValueError:
                         trial_isWaitingForAnswer = 1
                         print("not a valid number")
-
                     
                 elif trial_isWaitingForAnswer == 2:
                     try:
                         trial_answer_color = int(event.key)
+                        if trial_answer_color == trial_distraction_correct:
+                            color_correct_trial+=1
+
+                        color_accuracy = (color_correct_trial / current_trial) * 100.0
                         trial_isWaitingForAnswer = 3
-                        mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 2
@@ -892,18 +702,12 @@ def main():
                     try:
                         trial_answer_profile = int(event.key)
                         trial_isWaitingForAnswer = 2
-                        mDataStorage.add_sample(trial_end_temp, total_angle, 0, 4, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 1
                         print("not a valid number")
 
-    def reset(event):
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-
-    #fig, (p1, p2) = plt.subplots(2, 1, dpi = 80)
     fig, p1 = plt.subplots()
     p1.axis("off")
     fig.canvas.set_window_title('Study Pilot')
@@ -914,14 +718,11 @@ def main():
 
     color_pool = ['b', 'g', 'r', 'y', 'k'] #5
     text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
-    #text_pool = [u'蓝'.encode('utf-8'),u'绿'.encode('utf-8'), u'红'.encode('utf-8'), u'青'.encode('utf-8'), u'黄'.encode('utf-8'), u'黑'.encode('utf-8')]
-
+   
     show_text = p1.text(0.5, 0.5, '', color='g', fontsize=30, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-
     show_trial = p1.text(0.8, 0.95, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
     show_participant = p1.text(0.1, 0.95, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     show_block = p1.text(0.5, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
-
     if block == 1:
         show_block.set_text('block: %s  sit  normal'%block)
     elif block == 2:
@@ -930,6 +731,8 @@ def main():
         show_block.set_text('block: %s  walk  normal'%block)
     elif block == 4:
         show_block.set_text('block: %s  walk  distract'%block)
+
+    show_color_accuracy = p1.text(0.8, 0.75, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
     
     def animate(i):
         global idx_p
@@ -991,6 +794,15 @@ def main():
                             show_text.set_text("block done, take a rest :) ")
                             show_text.set_color('b')
 
+        if block == 2 or block == 4:
+            show_color_accuracy.set_text("color test accuracy: %s%"%color_accuracy)
+            if color_accuracy > 80:
+                show_color_accuracy.set_color('b')
+            else:
+                show_color_accuracy.set_color('r')
+        else:
+            show_color_accuracy.set_text("")
+
         show_trial.set_text("trial: %s/%s"%(current_trial, total_trials))
 
         return [show_text, show_trial]
@@ -998,57 +810,7 @@ def main():
     ani = animation.FuncAnimation(fig, animate, 100, 
                                   interval=2000, blit=True)  #20 delay, frames refresh 50 times per sec
 
-    """
-    plot_data, = p1.plot(ch0_buf, animated=True)
-    plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
-    
-    wedge = mpatches.Wedge((0.5, 0.5), 0.2, 0, 0)
-    p2.add_patch(wedge)
-    #p2.axis('equal')
-    #p2.axis("off")
-    txt_angle = p2.text(0.7, 0.9, '', transform=p2.transAxes, animated=True)
-    
-    plot_peak, = p1.plot(peak_x, peak_y, 'ro')
-    plot_valley, = p1.plot(valley_x, valley_y, 'ro')
-    plot_stop, = p1.plot(stop_x, stop_y, 'o', color='yellow')
-
-
-    p1.set_ylim(range_min, range_max)
-    #p2.set_ylim(range_min, range_max)
-    
-    def animate(i):
-        plot_data.set_ydata(ch0_buf)
-        plot_data.set_xdata(range(len(ch0_buf)))
-        
-        plot_data_ch1.set_ydata(ch1_buf)
-        plot_data_ch1.set_xdata(range(len(ch1_buf)))
-        #wedge.theta1 += 0.1
-        #wedge._recompute_path()
-        wedge.theta2 = total_angle
-        wedge._recompute_path()
-
-        txt_angle.set_text('angle = %1.2f' % (total_angle))
-
-        plot_peak.set_ydata(peak_y)
-        plot_peak.set_xdata(peak_x)
-
-        plot_valley.set_ydata(valley_y)
-        plot_valley.set_xdata(valley_x)
-
-        plot_stop.set_ydata(stop_y)
-        plot_stop.set_xdata(stop_x)
-
-        return [plot_data, plot_data_ch1, wedge, txt_angle, plot_peak, plot_valley, plot_stop]
-    
-    ani = animation.FuncAnimation(fig, animate, range(axis_span), 
-                                  interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
-
-    """
-
     plt.show()
-
-
-
 
 if __name__ == "__main__":
     main()
