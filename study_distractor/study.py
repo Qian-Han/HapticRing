@@ -738,6 +738,12 @@ def main():
         show_block.set_text('block: %s  walk  distract'%block)
 
     show_color_accuracy = p1.text(0.8, 0.75, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+
+    im_profile_axes = plt.axes([0.0, 0.8, 1.0, 0.2], frameon=True)  # Change the numbers in this array to position your image [left, bottom, width, height])
+    im_profile = plt.imread('profile.png')
+    im_profile_axes.axis("off")
+    im_profile_axes.imshow(lena)
+
     
     def animate(i):
         global idx_p
