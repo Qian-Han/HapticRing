@@ -517,7 +517,7 @@ def ir_read():
     serial_port.close()
     print('ir sensor serial existing...')
 #############################################################################################
-
+next_trial = 0
 
 
 def main():
@@ -539,10 +539,11 @@ def main():
     global trial_isWaitingForAnswer
     global trial_answer_profile
     global trial_answer_color
+    global next_trial
 
     #take user input
 
-    next_trial = 0
+    
 
     while True:
         try:
