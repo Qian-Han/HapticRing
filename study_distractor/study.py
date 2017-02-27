@@ -742,7 +742,7 @@ def main():
     im_profile_axes = plt.axes([0.0, 0.8, 1.0, 0.2], frameon=True)  # Change the numbers in this array to position your image [left, bottom, width, height])
     im_profile = plt.imread('profile.png')
     im_profile_axes.axis("off")
-    im_profile_axes.imshow(lena)
+    im_profile_axes.imshow(im_profile)
 
     
     def animate(i):
