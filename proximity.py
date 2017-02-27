@@ -9,7 +9,7 @@ class proximity(Thread):
 
 		Thread.__init__(self)
 
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14211', baudrate=115200)
 
 		self.prox_read = 0
 		self.read_val = 0

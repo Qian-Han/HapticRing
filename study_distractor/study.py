@@ -515,7 +515,7 @@ def SetIRValue(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14211', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
