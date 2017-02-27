@@ -146,7 +146,7 @@ class motor(Thread):
 					self.serial_port.write("x")
 					self.serial_port.write("x")
 					self.serial_port.write("z")
-					self.serial_port.write("z")	
+					# self.serial_port.write("z")	
 					self.is_ready = 1
 
 				else:
@@ -168,6 +168,7 @@ class motor(Thread):
 
 						for i in range(0,4):
 							self.serial_port.write("c")
+						self.serial_port.write("z")
 
 						self.time_tag = time.time()	
 						
@@ -188,13 +189,13 @@ class motor(Thread):
 
 					val_interval = val - self.val
 
-					if val_interval >=2.30:
-						step_interval = (int)(val_interval / 2.30)
+					if val_interval >=3.00:
+						step_interval = (int)(val_interval / 3.00)
 						#print(step_interval)
 						for x in range(0, step_interval):
 							self.serial_port.write("m")  #step down
 
-						self.val = self.val + step_interval * 2.30
+						self.val = self.val + step_interval * 3.00
 
 				elif val >= 0 and val < 5:
 					if self.spring_step == 1:
@@ -210,7 +211,8 @@ class motor(Thread):
 					self.serial_port.write("x")
 					self.serial_port.write("x")
 					self.serial_port.write("x")
-					self.serial_port.write("z")	
+					# self.serial_port.write("z")	
+					# self.serial_port.write("z")	
 					self.is_ready = 1
 
 				else:
@@ -221,13 +223,13 @@ class motor(Thread):
 
 						val_interval = val - self.val
 
-						if val_interval >=2.30:
-							step_interval = (int)(val_interval / 2.30)
+						if val_interval >=3.0:
+							step_interval = (int)(val_interval / 3.0)
 							#print(step_interval)
 							for x in range(0, step_interval):
 								self.serial_port.write("p")  #step down
 
-							self.val = self.val + step_interval * 2.30
+							self.val = self.val + step_interval * 3.0
 
 					elif val >= 0 and val < 5:
 						if self.spring_step == 1:
