@@ -11,7 +11,7 @@ class data_sample(object):
 		self.force = force #motor position, read from ir proximty
 
 		#beginning
-		self.event = event #start/complete trial, start/stop motion
+		self.event = event  # 1-trial start, 2-motion start, 3-motion stop, 4-profile start, 41-bump profile start, 42-bump profile end, 5-profile end, at 180, 6-trial end
 		self.block = block
 		self.trial = trial
 		self.profile = profile

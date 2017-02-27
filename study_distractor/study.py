@@ -40,7 +40,7 @@ from playsound import playsound
 isRecording = False
 total_profiles = 6
 profile_repeat = 5
-total_trials = 30 # 6 profile * 5 repeat
+total_trials = 36 # 6 profile * 5 repeat
 current_trial = 0
 color_correct_trial = 0
 color_accuracy = 0
@@ -327,7 +327,7 @@ def AddValue(serial_port, val):
                         #a profile stop
                         if isRecording:
                             #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                            mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 4, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+                            mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
                     mMotor.set_action_stop(total_angle)
 
@@ -441,9 +441,9 @@ def AddValue(serial_port, val):
                 profile_end_alert = False
 
         if total_angle < pre_total_angle:
-            mMotor.get_angle(pre_total_angle, mproxity_read)  
+            mMotor.get_angle(pre_total_angle, mproxity_read, mDataStorage)  
         else:
-            mMotor.get_angle(total_angle, mproxity_read)
+            mMotor.get_angle(total_angle, mproxity_read, mDataStorage)
 
         pre_total_angle = total_angle 
 
@@ -583,6 +583,8 @@ def main():
         for itrr in range(profile_repeat):
             trials.append(itrt)
 
+    test_trials = [1, 2, 3, 4, 5, 6]
+
 
     ir = threading.Thread(target=ir_read)
     ir.start()
@@ -634,6 +636,7 @@ def main():
         global base_angle
         global temp_angle
         global total_angle
+        global trial_distraction_correct
 
         #mMotor.write_serial(event.key)
         if event.key == ' ':
@@ -644,15 +647,27 @@ def main():
                 if not pause:
                     #randomly select a trial
                     if current_trial < total_trials:
+
+                        playsound("ding.wav") #indicate start
+
                         current_trial+=1
                         
-                        idxp = randint(0, (total_trials - current_trial)) #profile indx
-                        profile_index = trials[idxp]
-                        base_angle = 0
-                        temp_angle = 0
-                        total_angle = 0
-                        mMotor.set_profile(profile_index)
-                        trials.remove(profile_index)
+                        if current_trial <= 6:
+                            idxp = randint(0, 6-current_trial)
+                            profile_index = test_trials[idxp]
+                            base_angle = 0
+                            temp_angle = 0
+                            total_angle = 0
+                            mMotor.set_profile(profile_index)
+                            test_trials.remove(profile_index)
+                        else:
+                            idxp = randint(0, (total_trials - current_trial)) #profile indx
+                            profile_index = trials[idxp]
+                            base_angle = 0
+                            temp_angle = 0
+                            total_angle = 0
+                            mMotor.set_profile(profile_index)
+                            trials.remove(profile_index)
 
                         #start data recording
                         isRecording = True
@@ -669,6 +684,8 @@ def main():
                     trial_duration = trial_end_temp - trial_start_temp
                     isRecording = False
 
+                    print("color: %s"%trial_distraction_correct)
+
                     if current_trial <= total_trials:
                         trial_isWaitingForAnswer = 1
 
@@ -676,7 +693,7 @@ def main():
             #close
             plt.close(fig)
 
-        elif event.key == 'e' or event.key == 'c':
+        elif event.key == 'e' or event.key == 'c' or event.key == 's':
             mMotor.write_serial(event.key)
 
         else:
@@ -697,7 +714,7 @@ def main():
 
                         color_accuracy = (color_correct_trial / current_trial) * 100.0
                         trial_isWaitingForAnswer = 3
-                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 6, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 2
@@ -707,7 +724,7 @@ def main():
                     try:
                         trial_answer_profile = int(event.key)
                         trial_isWaitingForAnswer = 2
-                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 6, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 1
@@ -724,10 +741,10 @@ def main():
     color_pool = ['b', 'g', 'r', 'y', 'k'] #5
     text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
    
-    show_text = p1.text(0.5, 0.5, '', color='g', fontsize=30, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_trial = p1.text(0.8, 0.95, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_participant = p1.text(0.1, 0.95, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
-    show_block = p1.text(0.5, 0.95, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_text = p1.text(0.5, 0.3, '', color='g', fontsize=30, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_trial = p1.text(0.8, 0.75, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_participant = p1.text(0.1, 0.75, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_block = p1.text(0.5, 0.75, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     if block == 1:
         show_block.set_text('block: %s  stand  normal'%block)
     elif block == 2:
@@ -737,9 +754,9 @@ def main():
     elif block == 4:
         show_block.set_text('block: %s  walk  distract'%block)
 
-    show_color_accuracy = p1.text(0.8, 0.75, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_color_accuracy = p1.text(0.8, 0.55, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
 
-    im_profile_axes = plt.axes([0.0, 0.8, 1.0, 0.2], frameon=True)  # Change the numbers in this array to position your image [left, bottom, width, height])
+    im_profile_axes = plt.axes([0.0, 0.7, 1.0, 0.2], frameon=True)  # Change the numbers in this array to position your image [left, bottom, width, height])
     im_profile = plt.imread('profile.png')
     im_profile_axes.axis("off")
     im_profile_axes.imshow(im_profile)

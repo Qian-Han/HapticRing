@@ -104,7 +104,7 @@ class motor(Thread):
 		elif prof == 6:
 			self.tick_bump()
 
-	def get_angle(self, val, pval):  #pval for proximtiy value
+	def get_angle(self, val, pval, storage):  #pval for proximtiy value
 
 		if self.first_move == True and (time.time() - self.time_tag > 2):
 			#move a little bit down
@@ -153,6 +153,7 @@ class motor(Thread):
 					if val > self.action_start and val < self.action_end:
 						if self.spring_step == 0:
 							self.spring_step = 1
+							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 					elif val >= 0 and val < 2:
 						if self.spring_step == 1:
@@ -165,6 +166,7 @@ class motor(Thread):
 				if val > (self.action_end - 3.0) and val < self.action_end:
 					if self.spring_step == 0:
 						self.spring_step = 1
+						storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 						for i in range(0,4):
 							self.serial_port.write("c")
@@ -186,6 +188,7 @@ class motor(Thread):
 				if val > self.action_start and val < self.action_end:
 					if self.spring_step == 0:
 						self.spring_step = 1
+						storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 					val_interval = val - self.val
 
@@ -220,6 +223,7 @@ class motor(Thread):
 					if val > self.action_start and val < self.action_end:
 						if self.spring_step == 0:
 							self.spring_step = 1
+							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 						val_interval = val - self.val
 
@@ -244,6 +248,7 @@ class motor(Thread):
 						if self.spring_step == 0 or self.spring_step == 1:
 							if val - self.val > 20:
 								self.spring_step = 2
+								storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)
 								#print("going down")
 								for i in range(0,3):
 									self.serial_port.write("c")
@@ -256,6 +261,7 @@ class motor(Thread):
 
 								#print("going up")
 								self.spring_step = 1
+								storage.add_sample(time.time(), val, pval, 42, 0, 0, 0, 0, 0, 0, 0, 0)
 								for i in range(0,3):
 									self.serial_port.write("e")
 								self.serial_port.write("q")
