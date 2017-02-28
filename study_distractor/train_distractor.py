@@ -109,7 +109,7 @@ def main():
     color_pool = ['b', 'g', 'r', 'y', 'k'] #5
     text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
    
-    show_text = p1.text(0.5, 0.3, '', color='g', fontsize=30, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_text = p1.text(0.5, 0.3, '', color='g', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
     show_color_accuracy = p1.text(0.8, 0.55, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
     
     def animate(i):
