@@ -742,9 +742,9 @@ def main():
     text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
    
     show_text = p1.text(0.5, 0.3, '', color='g', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_trial = p1.text(0.8, 0.75, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_participant = p1.text(0.1, 0.75, 'participant: %s'%person, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
-    show_block = p1.text(0.5, 0.75, 'block: %s'%block, color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_trial = p1.text(0.8, 0.75, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_participant = p1.text(0.1, 0.75, 'participant: %s'%person, color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_block = p1.text(0.5, 0.75, 'block: %s'%block, color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     if block == 1:
         show_block.set_text('block: %s  stand  normal'%block)
     elif block == 2:
