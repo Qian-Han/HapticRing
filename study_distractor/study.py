@@ -250,7 +250,7 @@ def AddValue(serial_port, val):
                 running = True
                 direction_test_timer = 0
 
-                #a start
+                #a try start
                 if isRecording:
                     user_action_count+=1
                     #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
@@ -319,17 +319,11 @@ def AddValue(serial_port, val):
                         #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
                         mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
-                    if running_mode == 1 and total_angle > profile_end_angle:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
 
-                        #a profile stop
-                        if isRecording:
-                            #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                            mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
-
-                    mMotor.set_action_stop(total_angle)
+                    mMotor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
 
                     
 
@@ -436,14 +430,19 @@ def AddValue(serial_port, val):
             if total_angle > profile_start_angle and total_angle < (profile_start_angle + 2.0):
                 profile_end_alert = True
         else:
-            if total_angle > (profile_end_angle - 2):
+            if total_angle > profile_end_angle:  #the very first angle afer the try end
                 playsound("ding2.wav")
                 profile_end_alert = False
 
-        if total_angle < pre_total_angle:
-            mMotor.get_angle(pre_total_angle, mproxity_read, mDataStorage)  
+                if isRecording:
+                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                    mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+
+
+        if total_angle < pre_total_angle and total_angle >= 0:
+            mMotor.get_angle(pre_total_angle, mproxity_read, mDataStorage, isRecording)  
         else:
-            mMotor.get_angle(total_angle, mproxity_read, mDataStorage)
+            mMotor.get_angle(total_angle, mproxity_read, mDataStorage, isRecording)
 
         pre_total_angle = total_angle 
 
@@ -521,6 +520,7 @@ def ir_read():
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
+            print("ir : %s"%read_val)
             SetIRValue(int(read_val))
     except ValueError:
         pass
@@ -676,13 +676,19 @@ def main():
 
                         trial_start_temp = time.time()
                         #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                        mDataStorage.add_sample(trial_start_temp, total_angle, mproxity_read, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
+                        mDataStorage.add_sample(trial_start_temp, total_angle, mproxity_read, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)  #press start
 
                 if pause:
                     #calcuate the result
                     trial_end_temp = time.time()
                     trial_duration = trial_end_temp - trial_start_temp
                     isRecording = False
+
+                    #record the trial stop
+                    mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 6, block, current_trial, profile_index, user_action_count, trial_duration, 0, 0, 0)  #press stop
+
+                    #reset motor to a safe position
+                    mMotor.set_profile(0)
 
                     print("color: %s"%trial_distraction_correct)
 
@@ -714,7 +720,7 @@ def main():
 
                         color_accuracy = (color_correct_trial / current_trial) * 100.0
                         trial_isWaitingForAnswer = 3
-                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 6, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 7, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 2
@@ -724,7 +730,7 @@ def main():
                     try:
                         trial_answer_profile = int(event.key)
                         trial_isWaitingForAnswer = 2
-                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 6, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 7, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 1
