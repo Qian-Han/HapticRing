@@ -879,7 +879,7 @@ def main():
 
 
 
-    bnoforce = Button(axnoforce, 'No Force')
+    bnoforce = Button(axnoforce, 'No Force')   # When use on_clicked function, it has to have a para.
     bnoforce.on_clicked(click_noforce)
 
     bforce = Button(axforce, 'Force')

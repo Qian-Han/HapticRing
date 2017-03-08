@@ -25,9 +25,9 @@ class motor(Thread):
 		self.pthreshold_up = 300
 		self.pthreshold_down = 260
 
-		self.pthreshold_low = 100
+		self.pthreshold_low = 240
 
-		self.action_start = 0  #20 degree
+		self.action_start = 20 #20 degree
 		self.action_end =  180  #300 degree
 
 		self.time_tag = time.time()
@@ -106,7 +106,7 @@ class motor(Thread):
 		elif prof == 6:
 			self.tick_bump()
 		elif prof == 0:
-			self.reset(10, 0)  #reset to a higher position
+			self.reset(0)  #reset to a higher position
 
 
 	def get_angle(self, val, pval, storage, is_recording):  #pval for proximtiy value
@@ -150,12 +150,23 @@ class motor(Thread):
 				if pval > self.pthreshold_low and self.motor_moving == 0:
 					self.serial_port.write(".")   #moving down
 					self.motor_moving = 1
-				
+
 				elif pval < self.pthreshold_low:
 					self.trigger_state = self.target_state
 					self.target_state = 0
 					self.serial_port.write("s")
 					self.motor_moving = 0
+
+			elif self.trigger_state == 1:   #no force
+				if val>self.action_start and val < self.action_end:
+					if self.profile_step == 0:
+						print("set 1")
+						self.profile_step = 1
+				elif val >=0 and val < 2:
+					if self.profile_step == 1:
+						self.profile_step =0
+						print("reset 1")
+						self.reset(1)
 
 
 			elif self.trigger_state == 2: #force
@@ -184,7 +195,7 @@ class motor(Thread):
 
 			if self.trigger_state == 3: #stop
 
-				if val > (self.action_start + 40) and val < (self.action_start + 50):
+				if val > (self.action_start + 20) and val < (self.action_start + 30):
 					if self.profile_step == 0:
 						self.profile_step = 1
 						if is_recording:
@@ -268,7 +279,7 @@ class motor(Thread):
 				if val > self.action_start and val < self.action_end: 
 					if self.action_stop:
 						if self.profile_step == 0: #or self.profile_step == 1 only the first time
-							if val - self.val > 40:  #need to test
+							if val - self.val > 20:  #need to test
 								self.profile_step = 2
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)

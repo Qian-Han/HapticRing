@@ -39,8 +39,8 @@ from playsound import playsound
 #study parameters
 isRecording = False
 total_profiles = 6
-profile_repeat = 5
-total_trials = 36 # 6 profile * 5 repeat
+profile_repeat = 9
+total_trials = 54 # 6 profile * 5 repeat
 current_trial = 0
 color_correct_trial = 0
 color_accuracy = 0
@@ -319,6 +319,7 @@ def AddValue(serial_port, val):
                         #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
                         mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
 
+                    if total_angle >= profile_end_angle:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
@@ -430,7 +431,7 @@ def AddValue(serial_port, val):
             if total_angle > profile_start_angle and total_angle < (profile_start_angle + 2.0):
                 profile_end_alert = True
         else:
-            if total_angle > profile_end_angle:  #the very first angle afer the try end
+            if total_angle >= profile_end_angle-0.5:  #the very first angle afer the try end
                 playsound("ding2.wav")
                 profile_end_alert = False
 
@@ -520,7 +521,7 @@ def ir_read():
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
-            print("ir : %s"%read_val)
+            #print("ir : %s"%read_val)
             SetIRValue(int(read_val))
     except ValueError:
         pass
@@ -583,7 +584,7 @@ def main():
         for itrr in range(profile_repeat):
             trials.append(itrt)
 
-    test_trials = [1, 2, 3, 4, 5, 6]
+    #test_trials = [1, 2, 3, 4, 5, 6]
 
 
     ir = threading.Thread(target=ir_read)
@@ -651,7 +652,7 @@ def main():
                         playsound("ding.wav") #indicate start
 
                         current_trial+=1
-                        
+                        """
                         if current_trial <= 6:
                             idxp = randint(0, 6-current_trial)
                             profile_index = test_trials[idxp]
@@ -668,6 +669,16 @@ def main():
                             total_angle = 0
                             mMotor.set_profile(profile_index)
                             trials.remove(profile_index)
+
+                            """
+
+                        idxp = randint(0, (total_trials - current_trial)) #profile indx
+                        profile_index = trials[idxp]
+                        base_angle = 0
+                        temp_angle = 0
+                        total_angle = 0
+                        mMotor.set_profile(profile_index)
+                        trials.remove(profile_index)
 
                         #start data recording
                         isRecording = True
