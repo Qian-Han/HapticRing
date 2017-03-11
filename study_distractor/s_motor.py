@@ -22,10 +22,10 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 
-		self.pthreshold_up = 300
-		self.pthreshold_down = 260
+		self.pthreshold_up = 670
+		self.pthreshold_down = 650
 
-		self.pthreshold_low = 240
+		self.pthreshold_low = 520
 
 		self.action_start = 20 #20 degree
 		self.action_end =  180  #300 degree
@@ -134,7 +134,7 @@ class motor(Thread):
 					else:
 						self.trigger_state = 11
 					self.serial_port.write("s")
-					#print("stop called")
+					# print("reset moving up done")
 					self.motor_moving = 0
 
 				elif pval > self.pthreshold_down and pval < self.pthreshold_up:
@@ -143,7 +143,7 @@ class motor(Thread):
 					else:
 						self.trigger_state = 11
 					self.serial_port.write("s")
-					#print("stop called")
+					# print(" reset moving up done")
 					self.motor_moving = 0
 
 			elif self.trigger_state == 11:   #reset to a lower position, real get ready
@@ -153,6 +153,14 @@ class motor(Thread):
 
 				elif pval < self.pthreshold_low:
 					self.trigger_state = self.target_state
+					# print("reset moving down done")
+					if self.trigger_state == 1:
+						# print("dong le")
+						self.serial_port.write("e")
+						# self.serial_port.write("q")
+						#self.serial_port.write("q")
+
+
 					self.target_state = 0
 					self.serial_port.write("s")
 					self.motor_moving = 0
@@ -160,22 +168,22 @@ class motor(Thread):
 			elif self.trigger_state == 1:   #no force
 				if val>self.action_start and val < self.action_end:
 					if self.profile_step == 0:
-						print("set 1")
+						# print("set 1")
 						self.profile_step = 1
 				elif val >=0 and val < 2:
 					if self.profile_step == 1:
 						self.profile_step =0
-						print("reset 1")
+						# print("reset 1")
 						self.reset(1)
 
 
 			elif self.trigger_state == 2: #force
 				if self.is_ready == 0:
-					#for i in range(0,1):
-					self.serial_port.write("c")
-					self.serial_port.write("x")
-					self.serial_port.write("x")
-					self.serial_port.write("z")
+					for i in range(0,2):
+						self.serial_port.write("c")
+					# self.serial_port.write("x")
+					# self.serial_port.write("x")
+					# self.serial_port.write("z")
 					# self.serial_port.write("z")	
 					self.is_ready = 1
 
@@ -195,15 +203,15 @@ class motor(Thread):
 
 			if self.trigger_state == 3: #stop
 
-				if val > (self.action_start + 20) and val < (self.action_start + 30):
+				if val > (self.action_start + 25) and val < (self.action_start + 30):
 					if self.profile_step == 0:
 						self.profile_step = 1
 						if is_recording:
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
-						for i in range(0,4):
+						for i in range(0,5):
 							self.serial_port.write("c")
-						self.serial_port.write("z")
+						# self.serial_port.write("z")
 
 						self.time_tag = time.time()	
 						
@@ -219,7 +227,7 @@ class motor(Thread):
 				if val > self.action_start and val < self.action_end:
 					if self.profile_step == 0:
 						self.profile_step = 1
-						if is_recording:
+						if  1 :
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 					val_interval = val - self.val
@@ -243,9 +251,10 @@ class motor(Thread):
 				if self.is_ready == 0:
 					#for i in range(0,1):
 					self.serial_port.write("c")
-					self.serial_port.write("x")
-					self.serial_port.write("x")
-					self.serial_port.write("x")
+					self.serial_port.write("c")
+					# self.serial_port.write("x")
+					# self.serial_port.write("x")
+					# self.serial_port.write("x")
 					# self.serial_port.write("z")	
 					# self.serial_port.write("z")	
 					self.is_ready = 1
@@ -279,7 +288,7 @@ class motor(Thread):
 				if val > self.action_start and val < self.action_end: 
 					if self.action_stop:
 						if self.profile_step == 0: #or self.profile_step == 1 only the first time
-							if val - self.val > 20:  #need to test
+							if val - self.val > 5:  #need to test
 								self.profile_step = 2
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)

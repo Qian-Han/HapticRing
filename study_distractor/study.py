@@ -59,6 +59,8 @@ trial_duration = 0
 idx_p = -1
 idxc_p = -1
 
+is_first_trial = True
+
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
                  kpsh=False, valley=False, show=False, ax=None):
@@ -132,8 +134,8 @@ pre_total_angle = 0
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
-hard_peak = 680
-hard_valley = 300
+hard_peak = 580
+hard_valley = 420
 temp_peak = hard_peak
 temp_valley = hard_valley
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
@@ -433,6 +435,7 @@ def AddValue(serial_port, val):
         else:
             if total_angle >= profile_end_angle-0.5:  #the very first angle afer the try end
                 playsound("ding2.wav")
+                print ("180 finished")
                 profile_end_alert = False
 
                 if isRecording:
@@ -521,9 +524,10 @@ def ir_read():
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
-            #print("ir : %s"%read_val)
+            # print("ir : %s"%read_val)
             SetIRValue(int(read_val))
     except ValueError:
+
         pass
 
     while serial_port.inWaiting():
@@ -555,6 +559,15 @@ def main():
     global trial_isWaitingForAnswer
     global trial_answer_profile
     global trial_answer_color
+    global total_trials
+
+    
+
+    is_training = True
+
+    train_trials = [1,1,2,3,4,5,6,1,2,3,4,5,6]
+    if is_training:
+        total_trials = 10
 
     #take user input
     while True:
@@ -583,9 +596,6 @@ def main():
     for itrt in range(1, total_profiles+1):
         for itrr in range(profile_repeat):
             trials.append(itrt)
-
-    #test_trials = [1, 2, 3, 4, 5, 6]
-
 
     ir = threading.Thread(target=ir_read)
     ir.start()
@@ -638,6 +648,7 @@ def main():
         global temp_angle
         global total_angle
         global trial_distraction_correct
+        global is_first_trial
 
         #mMotor.write_serial(event.key)
         if event.key == ' ':
@@ -651,43 +662,68 @@ def main():
 
                         playsound("ding.wav") #indicate start
 
-                        current_trial+=1
-                        """
-                        if current_trial <= 6:
-                            idxp = randint(0, 6-current_trial)
-                            profile_index = test_trials[idxp]
+
+                        if is_first_trial:
+                            current_trial = 0
                             base_angle = 0
                             temp_angle = 0
                             total_angle = 0
-                            mMotor.set_profile(profile_index)
-                            test_trials.remove(profile_index)
+
+                            mMotor.set_profile(1)
+                            trial_isWaitingForAnswer = 0
+                            trial_distraction_correct = 0
+                            is_first_trial = False
+
                         else:
-                            idxp = randint(0, (total_trials - current_trial)) #profile indx
-                            profile_index = trials[idxp]
+                            current_trial+=1
+                            """
+                            if current_trial <= 6:
+                                idxp = randint(0, 6-current_trial)
+                                profile_index = test_trials[idxp]
+                                base_angle = 0
+                                temp_angle = 0
+                                total_angle = 0
+                                mMotor.set_profile(profile_index)
+                                test_trials.remove(profile_index)
+                            else:
+                                idxp = randint(0, (total_trials - current_trial)) #profile indx
+                                profile_index = trials[idxp]
+                                base_angle = 0
+                                temp_angle = 0
+                                total_angle = 0
+                                mMotor.set_profile(profile_index)
+                                trials.remove(profile_index)
+
+                                """
+
+                            
+
+                            if is_training:
+                                idxp = 0  #for training 
+                                profile_index = train_trials[idxp]
+                            else:
+                                idxp = randint(0, (total_trials - current_trial)) #formal profile indx
+                                profile_index = trials[idxp]
+
                             base_angle = 0
                             temp_angle = 0
                             total_angle = 0
                             mMotor.set_profile(profile_index)
-                            trials.remove(profile_index)
+                            
+                            
+                            if is_training:
+                                train_trials.remove(profile_index)
+                            else:
+                                trials.remove(profile_index)  #for formal
 
-                            """
+                            #start data recording
+                            isRecording = True
+                            trial_isWaitingForAnswer = 0
+                            trial_distraction_correct = 0
 
-                        idxp = randint(0, (total_trials - current_trial)) #profile indx
-                        profile_index = trials[idxp]
-                        base_angle = 0
-                        temp_angle = 0
-                        total_angle = 0
-                        mMotor.set_profile(profile_index)
-                        trials.remove(profile_index)
-
-                        #start data recording
-                        isRecording = True
-                        trial_isWaitingForAnswer = 0
-                        trial_distraction_correct = 0
-
-                        trial_start_temp = time.time()
-                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                        mDataStorage.add_sample(trial_start_temp, total_angle, mproxity_read, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)  #press start
+                            trial_start_temp = time.time()
+                            #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
+                            mDataStorage.add_sample(trial_start_temp, total_angle, mproxity_read, 1, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)  #press start
 
                 if pause:
                     #calcuate the result
@@ -718,7 +754,11 @@ def main():
                 if trial_isWaitingForAnswer == 1:
                     try:
                         trial_answer_profile = int(event.key)
-                        trial_isWaitingForAnswer = 2
+
+                        if trial_answer_profile < 1 or trial_answer_profile > 6:
+                            print("not a valid trial")
+                        else:
+                            trial_isWaitingForAnswer = 2
                     except ValueError:
                         trial_isWaitingForAnswer = 1
                         print("not a valid number")
@@ -726,10 +766,11 @@ def main():
                 elif trial_isWaitingForAnswer == 2:
                     try:
                         trial_answer_color = int(event.key)
-                        if trial_answer_color == trial_distraction_correct:
+                        if trial_answer_color == trial_distraction_correct and current_trial != 0:
                             color_correct_trial+=1
 
-                        color_accuracy = (color_correct_trial / current_trial) * 100.0
+                        if current_trial != 0:
+                            color_accuracy = (color_correct_trial / current_trial) * 100.0
                         trial_isWaitingForAnswer = 3
                         mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 7, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
                         user_action_count = 0
@@ -740,9 +781,12 @@ def main():
                 if trial_isWaitingForAnswer == 1:
                     try:
                         trial_answer_profile = int(event.key)
-                        trial_isWaitingForAnswer = 2
-                        mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 7, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
-                        user_action_count = 0
+                        if trial_answer_profile < 1 or trial_answer_profile > 6:
+                            print("not a valid trial")
+                        else:
+                            trial_isWaitingForAnswer = 2
+                            mDataStorage.add_sample(trial_end_temp, total_angle, mproxity_read, 7, block, current_trial, profile_index, user_action_count, trial_duration, trial_answer_profile, trial_distraction_correct, trial_answer_color)
+                            user_action_count = 0
                     except ValueError:
                         trial_isWaitingForAnswer = 1
                         print("not a valid number")

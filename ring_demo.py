@@ -145,8 +145,8 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
-hard_peak = 680
-hard_valley = 300
+hard_peak = 580
+hard_valley = 420
 
 temp_peak = hard_peak
 temp_valley = hard_valley
