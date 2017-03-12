@@ -5,6 +5,12 @@ import java.util.ArrayList;
 
 import processing.core.PApplet;
 
+
+/**Profile Change and Authoring Tool
+ * Work with Demo_Authoring.py to run the prototype
+ * @author hanteng
+ *
+ */
 class MPoint
 {
 	float xpos, ypos;
@@ -62,10 +68,6 @@ public class MainActivity extends PApplet{
 	private boolean rectOver = false;
 	private int rectColor = color(200);
 	private int rectHighlight = color(180);
-	
-	
-	private int seconds = 59;
-	private int mins = 5;
 	
 	//draw profile
 	private int width = 1280;
@@ -200,41 +202,6 @@ public class MainActivity extends PApplet{
     	textSize(26);
     	text("confirm",rectX,rectY + rectSize/4);
     	
-    	/*
-    	
-    	
-    	background(255);
-    	
-    	textSize(64);
-
-    	if(mins > 4)
-    	{
-    		fill(0, 102, 153, 150);
-    	}else
-    	{
-    		fill(250, 20, 20, 150);
-    	}
-    	
-    	text("Next meeting starts in: ", 300, 300); 
-    	text("m", 550, 450);
-    	text("s", 750, 450); 
-    	
-    	fill(20, 20, 20, 200);
-    	text("" + mins, 450, 450);
-    	
-    	text("" + seconds, 650, 450);
-    
-    	delay(1000);
-    	
-    	seconds--;
-    	if(seconds == -1)
-    	{
-    		seconds = 59;
-    		mins--;
-    	}
-    	
-    	
-    	*/
     }
     
     

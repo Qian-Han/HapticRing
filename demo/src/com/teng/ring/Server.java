@@ -46,7 +46,6 @@ public class Server {
 		public void run()
 		{
 			try{
-				//serverSocket = new ServerSocket(socketServerPORT);
 				serverSocket = new ServerSocket(socketServerPORT);
 				//incoming socket connection
 				clientSocket = serverSocket.accept();
@@ -59,8 +58,11 @@ public class Server {
 				outputStream = clientSocket.getOutputStream();
 				printStream = new PrintStream(outputStream);
 				
+				//reply a connection confirmation
 				SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread();
             	socketServerReplyThread.run();
+            	
+            	//keep listening
 				
 			}catch (IOException e) {
                 // TODO Auto-generated catch block
@@ -107,7 +109,6 @@ public class Server {
         String ip = "get ip address ";
         try {
             Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces();
-
 
             while (enumNetworkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = enumNetworkInterfaces

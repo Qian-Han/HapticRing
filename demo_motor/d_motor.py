@@ -34,6 +34,10 @@ class motor(Thread):
 		self.first_move = True
 		self.action_stop = False
 
+		self.custom_profile = []
+		self.custom_cur_step = 0  #total step 20? 30? 40?
+		self.custom_cur_step_itr = 0
+
 	def close(self):
 		self.serial_port.close()
 
@@ -53,44 +57,51 @@ class motor(Thread):
 		self.is_ready = 0
 
 	def noforce(self):
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 1
 		self.is_ready = 0
 		self.profile_step = 0
 		print("1 - noforce")
 
 	def force(self):		
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 2
 		self.is_ready = 0
 		self.profile_step = 0
 		print("2 - force")
 
 	def stop(self):
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 3
 		self.is_ready = 0
 		self.profile_step = 0
 		print("3 - stop")
 
 	def spring(self):
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 4
 		self.profile_step = 0
 		print("4 - spring")
 
 	def antispring(self):
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 5		
 		self.is_ready = 0
 		self.profile_step = 0
 		print("5 - antispring")
 
 	def tick_bump(self):
-		self.trigger_state = 11
+		self.trigger_state = 10
 		self.target_state = 6
 		self.profile_step = 0
 		print("6 - bump")
+
+	def custome(self, c_profile):
+		self.trigger_state = 10
+		self.target_state = 7
+		self.profile_step = 0
+		self.is_ready = 0
+		self.custom_profile = c_profile
 
 	def set_profile(self, prof):
 		if prof == 1:  #no force
@@ -107,6 +118,9 @@ class motor(Thread):
 			self.tick_bump()
 		elif prof == 0:
 			self.reset(0)  #reset to a higher position
+
+	def set_custom_profile(self, c_profile):
+		self.custome(c_profile)
 
 
 	def get_angle(self, val, pval, storage, is_recording):  #pval for proximtiy value
@@ -201,7 +215,7 @@ class motor(Thread):
 							
 							self.reset(2)
 
-			if self.trigger_state == 3: #stop
+			elif self.trigger_state == 3: #stop
 
 				if val > (self.action_start + 25) and val < (self.action_start + 30):
 					if self.profile_step == 0:
@@ -222,12 +236,12 @@ class motor(Thread):
 							self.reset(3)
 							self.profile_step = 0
 				
-			if self.trigger_state == 4: #spring
+			elif self.trigger_state == 4: #spring
 
 				if val > self.action_start and val < self.action_end:
 					if self.profile_step == 0:
 						self.profile_step = 1
-						if is_recording:
+						if  1 :
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 					val_interval = val - self.val
@@ -247,7 +261,7 @@ class motor(Thread):
 
 					self.val = self.action_start - 2
 
-			if self.trigger_state == 5: #antipring
+			elif self.trigger_state == 5: #antipring
 				if self.is_ready == 0:
 					#for i in range(0,1):
 					self.serial_port.write("c")
@@ -284,7 +298,7 @@ class motor(Thread):
 
 						self.val = self.action_start - 2
 
-			if self.trigger_state == 6:  #bump
+			elif self.trigger_state == 6:  #bump
 				if val > self.action_start and val < self.action_end: 
 					if self.action_stop:
 						if self.profile_step == 0: #or self.profile_step == 1 only the first time
@@ -319,4 +333,27 @@ class motor(Thread):
 
 					self.val = self.action_start
 
+			elif self.trigger_state == 7: #custom profile
+				if self.is_ready == 0:
+					#pre-set
+					if self.custom_profile[0] > 0:
+						self.custom_cur_step = self.custom_profile[0]
+						self.custom_cur_step_itr = 0
+						for x in range(0, self.custom_cur_step):
+								self.serial_port.write("p")  #step down
+					self.is_ready = 1
+				elif:
+					if val > self.action_start and val < self.action_end:
+						if self.profile_step == 0:
+							self.profile_step = 1
+
+						#check which angle is achieved and what is the target step and what is the current step
+
+
+						#do the step
+
+					elif val >= 0 and val < 5:
+						if self.profile_step == 1:
+							self.profile_step = 0
+							self.reset(7)
 

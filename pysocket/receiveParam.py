@@ -12,12 +12,10 @@ profile_data = []
 def interprate(data):
 	global profile_data
 	del profile_data[:]
-	profile_data = [x.strip() for x in data.split(',')]
-	count = int(profile_data[0])
+	profile_data = data.split(',')
+	#count = int(profile_data[0])
 
-	for 
-
-	print(profile_data)
+	print(profile_data[0])
 
 
 parser = argparse.ArgumentParser(description='Sending --message string via socket')
