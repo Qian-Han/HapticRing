@@ -136,6 +136,10 @@ cleaned_profile_data = []
 def interprate(data):
     global profile_data
     global cleaned_profile_data
+    global total_angle
+    global base_angle
+    global temp_angle
+
     del profile_data[:]
     del cleaned_profile_data[:]
     profile_data = data.split(',')
@@ -151,6 +155,9 @@ def interprate(data):
 
         print(cleaned_profile_data)
 
+        total_angle = 0
+        base_angle = 0
+        temp_angle = 0
         m_motor.set_custom_profile(cleaned_profile_data)
 
 
@@ -516,7 +523,7 @@ def ir_read():
 def main():
     #need to run a while
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('10.31.42.209', 9090))
+    sock.connect(('10.31.44.28', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)
