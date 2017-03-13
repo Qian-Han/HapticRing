@@ -91,6 +91,17 @@ public class MainActivity extends PApplet{
 	private ArrayList<NPoint> profile;
 	
 	private Server server;
+	private String activityTag = "authoring";
+	
+	public static MainActivity instance;
+	public static MainActivity getInstance()
+	{
+		if(instance == null)
+		{
+			instance = new MainActivity();
+		}
+		return instance;
+	}
 	
 	public void settings(){
 		print("hello\n");
@@ -101,9 +112,10 @@ public class MainActivity extends PApplet{
     	background(255);
     	input_points = new ArrayList<MPoint>();
     	profile = new ArrayList<NPoint>();
+    	instance = this;
     	
     	try {
-			server = new Server();
+			server = new Server(activityTag);
 			println(server.getIpAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -1,5 +1,6 @@
 package com.teng.ring;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -8,6 +9,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 public class Server {
@@ -17,10 +19,17 @@ public class Server {
 	private PrintStream printStream;
 	private OutputStream outputStream;
 	
-	String message = "";
+	private ArrayList<Integer> byteArray;
+	private boolean receivingMode = false;
 	
-	public Server() throws IOException
+	private String message = "";
+	private String activityTag;
+	
+	public Server(String activityTag) throws IOException
 	{
+		byteArray = new ArrayList<Integer>();
+		this.activityTag = activityTag;
+		
 		Thread socketServerThread = new Thread(new SocketServerThread());
 		socketServerThread.start();
 	}
@@ -63,6 +72,12 @@ public class Server {
             	socketServerReplyThread.run();
             	
             	//keep listening
+            	if(activityTag == "angrybird")
+            	{
+            		SocketServerReceiveThread socketServerReceiveThread = new SocketServerReceiveThread();
+            		socketServerReceiveThread.run();
+            	}
+            	
 				
 			}catch (IOException e) {
                 // TODO Auto-generated catch block
@@ -103,6 +118,70 @@ public class Server {
 	{
 		SocketServerSendThread socketServerSendThread = new SocketServerSendThread(msg);
     	socketServerSendThread.run();
+	}
+	
+	private class SocketServerReceiveThread extends Thread {
+		public boolean keepReading = true;
+		private BufferedInputStream input;
+		
+		public SocketServerReceiveThread()
+		{
+			try {
+				this.input = new BufferedInputStream(clientSocket.getInputStream());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void run()
+		{
+			while(!Thread.currentThread().isInterrupted() && keepReading)
+			{
+				try {
+					if(clientSocket.isConnected())
+					{
+						
+					}else
+					{
+						keepReading = false;
+						System.out.println("connection lost");
+						break;
+					}
+					
+					int byteRead = input.read();  
+					byteArray.add(byteRead);
+					
+					if(activityTag == "angrybird")
+					{
+						//if three items, x, y, z
+						if(byteArray.size() == 3)
+						{
+							if(byteArray.get(2) == 1)
+							{
+								//mouse press down
+							}else if(byteArray.get(2) == 2)
+							{
+								//mouse release
+							}else if(byteArray.get(2) == 3)
+							{
+								//hold
+								int x = byteArray.get(0);
+								int y = byteArray.get(1);
+								
+								//mouse move to
+							}
+						}
+					}
+					
+					
+					
+				}catch (IOException e) {
+                    e.printStackTrace();
+                }
+			}
+		}
 	}
 	
 	public String getIpAddress() {

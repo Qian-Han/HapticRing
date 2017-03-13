@@ -337,20 +337,31 @@ class motor(Thread):
 				if self.is_ready == 0:
 					#pre-set
 					if self.custom_profile[0] > 0:
-						self.custom_cur_step = self.custom_profile[0]
-						self.custom_cur_step_itr = 0
+						self.custom_cur_step = self.custom_profile[0]  #current force level
+						self.custom_cur_step_itr = 0 #
 						for x in range(0, self.custom_cur_step):
 								self.serial_port.write("p")  #step down
 					self.is_ready = 1
-				elif:
-					if val > self.action_start and val < self.action_end:
+				else:
+					if val >= self.action_start and val <= (self.action_end - 20):
 						if self.profile_step == 0:
 							self.profile_step = 1
 
 						#check which angle is achieved and what is the target step and what is the current step
+						self.custom_cur_step_itr = int(val / 5)  # 5 is temp
 
+						if self.custom_cur_step_itr < len(self.custom_profile):
+							target_step = self.custom_profile[self.custom_cur_step_itr]
 
-						#do the step
+							#do the step
+							if target_step > self.custom_cur_step:
+								for x in range(self.custom_cur_step, target_step):
+									self.serial_port.write("q")
+							elif target_step < self.custom_cur_step:
+								for x in range(target_step, self.custom_cur_step):
+									self.serial_port.write("z")
+
+							self.custom_cur_step = target_step
 
 					elif val >= 0 and val < 5:
 						if self.profile_step == 1:

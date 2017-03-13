@@ -8,14 +8,27 @@ import time
 import argparse
 
 profile_data = []
+cleaned_profile_data = []
 
 def interprate(data):
 	global profile_data
+	global cleaned_profile_data
 	del profile_data[:]
+	del cleaned_profile_data[:]
 	profile_data = data.split(',')
-	#count = int(profile_data[0])
 
-	print(profile_data[0])
+
+	print('  ')
+	if len(profile_data) > 1:
+
+		count = int(profile_data[0])
+
+		for itrp in range(1, count):
+			angle = int(profile_data[itrp * 2 -1])
+			cleaned_profile_data.append(int(profile_data[itrp * 2]))
+
+		print(cleaned_profile_data)
+
 
 
 parser = argparse.ArgumentParser(description='Sending --message string via socket')

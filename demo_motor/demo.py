@@ -23,8 +23,8 @@ import matplotlib
 matplotlib.use('TKAgg')
 matplotlib.rcParams['toolbar'] = 'None'
 
-from d_motor import motor
-m_motor = motor()
+#from d_motor import motor
+#m_motor = motor()
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -127,6 +127,29 @@ mproxity_read = 0
 profile_end_angle = 180
 profile_start_angle = 20
 profile_end_alert = False
+
+
+#custom profile
+profile_data = []
+cleaned_profile_data = []
+
+def interprate(data):
+    global profile_data
+    global cleaned_profile_data
+    del profile_data[:]
+    del cleaned_profile_data[:]
+    profile_data = data.split(',')
+
+    print('  ')
+    if len(profile_data) > 1:
+
+        count = int(profile_data[0])
+
+        for itrp in range(1, count):
+            angle = int(profile_data[itrp * 2 -1])
+            cleaned_profile_data.append(int(profile_data[itrp * 2]))
+
+        print(cleaned_profile_data)
 
 
 def detect_running(val_list):
@@ -507,32 +530,28 @@ def ir_read():
 def main():
     #need to run a while
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('124.11.11.11', 8080))
+    sock.connect(('10.31.46.74', 9090))
 
     #ir
-    ir = threading.Thread(target=ir_read)
-    ir.start()
+    #ir = threading.Thread(target=ir_read)
+    #ir.start()
     #hall
-    t = threading.Thread(target=serial_read)
-    t.start()
+    #t = threading.Thread(target=serial_read)
+    #t.start()
     #motor
-    m_motor.start()
+    #m_motor.start()
 
     def close_event():
         sock.close()
 
-        m_motor.close()
-        m_motor.join()
+        #m_motor.close()
+        #m_motor.join()
         
-        t.do_run = False
-        t.join()
+        #t.do_run = False
+        #t.join()
 
-        ir.do_run = False
-        ir.join()
-
-        print("existing...")
-
-        exit()
+        #ir.do_run = False
+        #ir.join()
 
     def press(event):
         if event.key == 'q':
@@ -550,6 +569,10 @@ def main():
     except KeyboardInterrupt:
         close_event()
         pass
+
+    print("sock closed")
+    print("existing...")
+    exit()
 
 
 if __name__ == "__main__":
