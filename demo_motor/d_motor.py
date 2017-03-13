@@ -123,7 +123,7 @@ class motor(Thread):
 		self.custome(c_profile)
 
 
-	def get_angle(self, val, pval, storage, is_recording):  #pval for proximtiy value
+	def get_angle(self, val, pval):  #pval for proximtiy value
 
 		if self.first_move == True and (time.time() - self.time_tag > 2):
 			#move a little bit down
@@ -340,7 +340,7 @@ class motor(Thread):
 						self.custom_cur_step = self.custom_profile[0]  #current force level
 						self.custom_cur_step_itr = 0 #
 						for x in range(0, self.custom_cur_step):
-								self.serial_port.write("p")  #step down
+								self.serial_port.write("m")  #step down
 					self.is_ready = 1
 				else:
 					if val >= self.action_start and val <= (self.action_end - 20):
@@ -356,10 +356,10 @@ class motor(Thread):
 							#do the step
 							if target_step > self.custom_cur_step:
 								for x in range(self.custom_cur_step, target_step):
-									self.serial_port.write("q")
+									self.serial_port.write("z")
 							elif target_step < self.custom_cur_step:
 								for x in range(target_step, self.custom_cur_step):
-									self.serial_port.write("z")
+									self.serial_port.write("q")
 
 							self.custom_cur_step = target_step
 

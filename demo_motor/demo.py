@@ -23,8 +23,8 @@ import matplotlib
 matplotlib.use('TKAgg')
 matplotlib.rcParams['toolbar'] = 'None'
 
-#from d_motor import motor
-#m_motor = motor()
+from d_motor import motor
+m_motor = motor()
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -151,6 +151,8 @@ def interprate(data):
 
         print(cleaned_profile_data)
 
+        m_motor.set_custom_profile(cleaned_profile_data)
+
 
 def detect_running(val_list):
     return np.std(val_list)
@@ -239,12 +241,6 @@ def add_value_ch0(serial_port, val):
                 running = True
                 direction_test_timer = 0
 
-                #a try start
-                if isRecording:
-                    user_action_count+=1
-                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                    mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 2, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
-
             #wait for span/2 frames
             #reading_direction must be 1
             if direction_test_timer < predict_span / 2: #10
@@ -303,17 +299,12 @@ def add_value_ch0(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    #a stop
-                    if isRecording:
-                        #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                        mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 3, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
-
                     if total_angle >= profile_end_angle:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
 
-                    mMotor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
+                    m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
 
                     
 
@@ -421,19 +412,14 @@ def add_value_ch0(serial_port, val):
                 profile_end_alert = True
         else:
             if total_angle >= profile_end_angle-0.5:  #the very first angle afer the try end
-                playsound("ding2.wav")
+                #playsound("ding2.wav")
                 print ("180 finished")
                 profile_end_alert = False
 
-                if isRecording:
-                    #timestamp', 'angle', 'force', 'event', 'block', 'trial', 'profile', 'count', 'duration', 'profile_result', 'distractor', 'distractor_result'
-                    mDataStorage.add_sample(time.time(), total_angle, mproxity_read, 5, block, current_trial, profile_index, user_action_count, 0, 0, 0, 0)
-
-
         if total_angle < pre_total_angle and total_angle >= 0:
-            mMotor.get_angle(pre_total_angle, mproxity_read, mDataStorage, isRecording)  
+            m_motor.get_angle(pre_total_angle, mproxity_read)  
         else:
-            mMotor.get_angle(total_angle, mproxity_read, mDataStorage, isRecording)
+            m_motor.get_angle(total_angle, mproxity_read)
 
         pre_total_angle = total_angle 
 
@@ -452,7 +438,7 @@ def add_value_ch0(serial_port, val):
             base_angle = 360
             temp_angle = 0
 
-        mMotor.get_angle(total_angle)
+        m_motor.get_angle(total_angle)
 
 def add_value_ch1(val):
     global prev_val_ch1
@@ -530,28 +516,28 @@ def ir_read():
 def main():
     #need to run a while
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('10.31.46.74', 9090))
+    sock.connect(('10.31.42.209', 9090))
 
     #ir
-    #ir = threading.Thread(target=ir_read)
-    #ir.start()
+    ir = threading.Thread(target=ir_read)
+    ir.start()
     #hall
-    #t = threading.Thread(target=serial_read)
-    #t.start()
+    t = threading.Thread(target=serial_read)
+    t.start()
     #motor
-    #m_motor.start()
+    m_motor.start()
 
     def close_event():
         sock.close()
 
-        #m_motor.close()
-        #m_motor.join()
+        m_motor.close()
+        m_motor.join()
         
-        #t.do_run = False
-        #t.join()
+        t.do_run = False
+        t.join()
 
-        #ir.do_run = False
-        #ir.join()
+        ir.do_run = False
+        ir.join()
 
     def press(event):
         if event.key == 'q':

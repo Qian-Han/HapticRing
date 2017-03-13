@@ -179,7 +179,7 @@ class motor(Thread):
 
 			elif self.trigger_state == 2: #force
 				if self.is_ready == 0:
-					for i in range(0,2):
+					for i in range(0,3):
 						self.serial_port.write("c")
 					# self.serial_port.write("x")
 					# self.serial_port.write("x")
@@ -209,7 +209,7 @@ class motor(Thread):
 						if is_recording:
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
-						for i in range(0,5):
+						for i in range(0,6):
 							self.serial_port.write("c")
 						# self.serial_port.write("z")
 
@@ -227,18 +227,22 @@ class motor(Thread):
 				if val > self.action_start and val < self.action_end:
 					if self.profile_step == 0:
 						self.profile_step = 1
-						if is_recording:
+
+
+
+						if  is_recording :
+
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
 					val_interval = val - self.val
 
-					if val_interval >=3.00:
-						step_interval = (int)(val_interval / 3.00)
+					if val_interval >=2.000:
+						step_interval = (int)(val_interval / 2.000)
 						#print(step_interval)
 						for x in range(0, step_interval):
 							self.serial_port.write("m")  #step down
 
-						self.val = self.val + step_interval * 3.00
+						self.val = self.val + step_interval * 2.000
 
 				elif val >= 0 and val < 5:
 					if self.profile_step == 1:
@@ -250,6 +254,7 @@ class motor(Thread):
 			if self.trigger_state == 5: #antipring
 				if self.is_ready == 0:
 					#for i in range(0,1):
+					self.serial_port.write("c")
 					self.serial_port.write("c")
 					self.serial_port.write("c")
 					# self.serial_port.write("x")
@@ -293,7 +298,7 @@ class motor(Thread):
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)
 								#print("going down")
-								for i in range(0,3):
+								for i in range(0,4):
 									self.serial_port.write("c")
 								self.serial_port.write("z")
 
@@ -306,7 +311,7 @@ class motor(Thread):
 								self.profile_step = 1
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 42, 0, 0, 0, 0, 0, 0, 0, 0)
-								for i in range(0,3):
+								for i in range(0,4):
 									self.serial_port.write("e")
 								self.serial_port.write("q")
 

@@ -563,11 +563,11 @@ def main():
 
     
 
-    is_training = True
+    is_training = False
 
-    train_trials = [1,1,2,3,4,5,6,1,2,3,4,5,6]
+    train_trials = [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6]
     if is_training:
-        total_trials = 10
+        total_trials = 24
 
     #take user input
     while True:
