@@ -39,7 +39,8 @@ public class Server {
 		if(serverSocket != null)
 		{
 			try{
-				printStream.close();
+				if(printStream != null)
+					printStream.close();
 				serverSocket.close();
 				System.out.println("server closed");
 			}catch(IOException e)
@@ -72,7 +73,7 @@ public class Server {
             	socketServerReplyThread.run();
             	
             	//keep listening
-            	if(activityTag == "angrybird")
+            	if(activityTag == "angrybird" || activityTag == "locker")
             	{
             		SocketServerReceiveThread socketServerReceiveThread = new SocketServerReceiveThread();
             		socketServerReceiveThread.run();
@@ -167,11 +168,23 @@ public class Server {
 							}else if(byteArray.get(2) == 3)
 							{
 								//hold
-								int x = byteArray.get(0);
-								int y = byteArray.get(1);
+								int x = (int)byteArray.get(0);
+								int y = (int)byteArray.get(1);
 								
 								//mouse move to
 							}
+							
+							byteArray.clear();
+						}
+					}else if(activityTag == "locker")
+					{
+						if(byteArray.size() == 1)
+						{
+							//this is only the angle
+							//from byte to float
+							LockerActivity.getInstance().rotateAngle = (float)byteArray.get(0);
+							
+							byteArray.clear();
 						}
 					}
 					
