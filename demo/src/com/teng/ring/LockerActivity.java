@@ -13,6 +13,7 @@ public class LockerActivity extends PApplet{
 	private PImage locker;
 	private PImage rotator;
 	public float rotateAngle = 0.0f;
+	private Server server;
 	
 	public static LockerActivity instance;
 	public static LockerActivity getInstance()
@@ -36,14 +37,14 @@ public class LockerActivity extends PApplet{
     	locker = loadImage("locker_outer.png");
     	rotator = loadImage("locker_inner.png");
     	
-    	/*
+    	
     	try {
 			server = new Server(activityTag);
 			println(server.getIpAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
     }
     
     public void draw()

@@ -15,6 +15,7 @@ from math import *
 from random import randint
 from collections import deque
 import threading
+import argparse
 
 import os
 os.environ['PYTHON_EGG_CACHE'] = '/tmp'
@@ -128,6 +129,7 @@ profile_end_angle = 180
 profile_start_angle = 20
 profile_end_alert = False
 
+demo_name = 'demo_name'
 
 #custom profile
 profile_data = []
@@ -423,10 +425,13 @@ def add_value_ch0(serial_port, val):
                 print ("180 finished")
                 profile_end_alert = False
 
-        if total_angle < pre_total_angle and total_angle >= 0:
-            m_motor.get_angle(pre_total_angle, mproxity_read)  
-        else:
-            m_motor.get_angle(total_angle, mproxity_read)
+        if demo_name == "locker":
+            if total_angle < pre_total_angle and total_angle >= 0:
+                m_motor.get_angle(pre_total_angle, mproxity_read)  
+                main.sock.send((("%s"%pre_total_angle) + '\n'))
+            else:
+                m_motor.get_angle(total_angle, mproxity_read)
+                main.sock.send((("%s"%total_angle) + '\n'))
 
         pre_total_angle = total_angle 
 
@@ -469,7 +474,7 @@ def add_value_ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem26211', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -500,7 +505,7 @@ def set_ir_value(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14211', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem24111', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
@@ -521,9 +526,26 @@ def ir_read():
 
 
 def main():
+    global demo_name
+
+    parser = argparse.ArgumentParser(description='demo --name string')
+    parser.add_argument('--name', action='store', dest='name', default='locker', help='name to execute')
+
+    args = parser.parse_args()
+
+    if args.name == 'authoring':
+        print("authoring tool")
+        demo_name = "authoring tool"
+    elif args.name == 'locker':
+        print("locker")
+        demo_name = "locker"
+    elif args.name == 'angrybird':
+        print("angry bird")
+        demo_name = "angry bird"
+
     #need to run a while
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('10.31.44.28', 9090))
+    main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    main.sock.connect(('10.31.45.150', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)
@@ -535,7 +557,7 @@ def main():
     m_motor.start()
 
     def close_event():
-        sock.close()
+        main.sock.close()
 
         m_motor.close()
         m_motor.join()
@@ -556,7 +578,7 @@ def main():
 
     try:
         while True:
-            data = sock.recv(1024)
+            data = main.sock.recv(1024)
             if data:
                 interprate(data)
     except KeyboardInterrupt:

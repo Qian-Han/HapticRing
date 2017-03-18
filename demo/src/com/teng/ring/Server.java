@@ -1,7 +1,9 @@
 package com.teng.ring;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
@@ -123,12 +125,16 @@ public class Server {
 	
 	private class SocketServerReceiveThread extends Thread {
 		public boolean keepReading = true;
-		private BufferedInputStream input;
+		//private BufferedInputStream input;
+		//private InputStreamReader input;
+		private BufferedReader input;
+		private String msg;
 		
 		public SocketServerReceiveThread()
 		{
 			try {
-				this.input = new BufferedInputStream(clientSocket.getInputStream());
+				//this.input = new BufferedInputStream(clientSocket.getInputStream());
+				this.input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -151,9 +157,25 @@ public class Server {
 						break;
 					}
 					
-					int byteRead = input.read();  
-					byteArray.add(byteRead);
+					//int byteRead = input.read();  
+					//byteArray.add(byteRead);
 					
+					//lets read string
+					if(input != null)
+					{
+						if((msg = input.readLine()) != null)
+						{
+							System.out.println(msg);
+						}else
+						{
+							keepReading = false;
+						}
+						
+					}
+					
+					
+					
+					/*
 					if(activityTag == "angrybird")
 					{
 						//if three items, x, y, z
@@ -188,7 +210,7 @@ public class Server {
 						}
 					}
 					
-					
+					*/
 					
 				}catch (IOException e) {
                     e.printStackTrace();

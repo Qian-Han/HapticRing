@@ -8,7 +8,7 @@ class motor(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem24141', baudrate=115200)
 
 		self.trigger_state = 0
 		self.target_state = 0
