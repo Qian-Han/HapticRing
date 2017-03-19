@@ -10,16 +10,24 @@ package com.teng.ring;
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent; 
+import java.awt.event.KeyEvent;
 
-public class AngryBirdActivity {
+import javax.swing.JFrame;
+import javax.swing.JPanel; 
+
+public class AngryBirdActivity extends JPanel{
 
 	public Robot robot = new Robot();
 	private String acitivtyTag = "angrybird";
 	
 	public static void main(String[] args) throws AWTException
 	{
-	    new AngryBirdActivity();
+		JFrame frame = new JFrame("mini");
+		AngryBirdActivity angry = new AngryBirdActivity();
+		frame.add(angry);
+	    frame.setSize(200, 200);
+	    frame.setVisible(true);
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public static AngryBirdActivity instance;
@@ -45,6 +53,10 @@ public class AngryBirdActivity {
 	    //move to the original position and get ready
 	    robot.delay(100);
 	    robot.mouseMove(40, 130);
+	    
+	    
+	    //server
+	    
 	}
 	  
 	public void mousePress()
