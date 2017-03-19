@@ -474,7 +474,7 @@ def add_value_ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem26211', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem26241', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -505,7 +505,7 @@ def set_ir_value(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem24111', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem26231', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
@@ -545,7 +545,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.45.150', 9090))
+    main.sock.connect(('10.31.42.107', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)

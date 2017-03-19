@@ -129,6 +129,7 @@ public class Server {
 		//private InputStreamReader input;
 		private BufferedReader input;
 		private String msg;
+		private String[] values;
 		
 		public SocketServerReceiveThread()
 		{
@@ -163,16 +164,23 @@ public class Server {
 					//lets read string
 					if(input != null)
 					{
-						if((msg = input.readLine()) != null)
+						if((msg = input.readLine()) != null)  //when client lost, will read null
 						{
 							System.out.println(msg);
+							values = msg.split(",");
 						}else
 						{
 							keepReading = false;
+							continue;
 						}
 						
 					}
 					
+					if(activityTag == "locker")
+					{
+						//values
+						
+					}
 					
 					
 					/*
