@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#trail!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division
 import sys
@@ -134,8 +134,8 @@ pre_total_angle = 0
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
-hard_peak = 580
-hard_valley = 420
+hard_peak = 580  #650
+hard_valley = 420   #390
 temp_peak = hard_peak
 temp_valley = hard_valley
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
@@ -489,7 +489,7 @@ def AddValue_Ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -520,11 +520,11 @@ def SetIRValue(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14211', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
-            # print("ir : %s"%read_val)
+            #print("ir : %s"%read_val)
             SetIRValue(int(read_val))
     except ValueError:
 
@@ -565,9 +565,9 @@ def main():
 
     is_training = False
 
-    train_trials = [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6]
+    train_trials = [4,3]
     if is_training:
-        total_trials = 24
+        total_trials = 2
 
     #take user input
     while True:

@@ -5,7 +5,7 @@ void setup() {
 void loop(){
   
   int a = analogRead(A0);
-  int b = analogRead(A4);
+  int b = analogRead(A1);
 
 
    //Show raw picture

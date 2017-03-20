@@ -314,6 +314,9 @@ public class MainActivity extends PApplet{
     	if (key == 'q') {
     		server.onDestroy();
     	    exit();
+    	}else if(key == 'e' || key == 'x')
+    	{
+    		server.sendMessage("" + key);
     	}
     }
     

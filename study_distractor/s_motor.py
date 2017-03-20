@@ -8,7 +8,7 @@ class motor(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
 
 		self.trigger_state = 0
 		self.target_state = 0
@@ -22,10 +22,10 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 
-		self.pthreshold_up = 670
-		self.pthreshold_down = 650
+		self.pthreshold_up = 670  #950
+		self.pthreshold_down = 650   #940
 
-		self.pthreshold_low = 520
+		self.pthreshold_low = 520 #833
 
 		self.action_start = 20 #20 degree
 		self.action_end =  180  #300 degree
@@ -179,7 +179,7 @@ class motor(Thread):
 
 			elif self.trigger_state == 2: #force
 				if self.is_ready == 0:
-					for i in range(0,3):
+					for i in range(0,2):
 						self.serial_port.write("c")
 					# self.serial_port.write("x")
 					# self.serial_port.write("x")
@@ -209,7 +209,7 @@ class motor(Thread):
 						if is_recording:
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
-						for i in range(0,6):
+						for i in range(0,3):
 							self.serial_port.write("c")
 						# self.serial_port.write("z")
 
@@ -236,13 +236,13 @@ class motor(Thread):
 
 					val_interval = val - self.val
 
-					if val_interval >=2.000:
-						step_interval = (int)(val_interval / 2.000)
+					if val_interval >=3.000:
+						step_interval = (int)(val_interval / 3.000)
 						#print(step_interval)
 						for x in range(0, step_interval):
 							self.serial_port.write("m")  #step down
 
-						self.val = self.val + step_interval * 2.000
+						self.val = self.val + step_interval * 3.000
 
 				elif val >= 0 and val < 5:
 					if self.profile_step == 1:
@@ -298,7 +298,7 @@ class motor(Thread):
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)
 								#print("going down")
-								for i in range(0,4):
+								for i in range(0,2):
 									self.serial_port.write("c")
 								self.serial_port.write("z")
 
@@ -311,7 +311,7 @@ class motor(Thread):
 								self.profile_step = 1
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 42, 0, 0, 0, 0, 0, 0, 0, 0)
-								for i in range(0,4):
+								for i in range(0,2):
 									self.serial_port.write("e")
 								self.serial_port.write("q")
 

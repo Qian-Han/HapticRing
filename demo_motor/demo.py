@@ -123,7 +123,7 @@ direction_test_timer = 0
 reading_direction = 1
 predict_span = 200
 buffer_interval = 1000;
-running_mode = 1 # 1 -> reset  2-> no reset
+running_mode = 2 # 1 -> reset  2-> no reset
 mproxity_read = 0
 profile_end_angle = 180
 profile_start_angle = 20
@@ -159,8 +159,12 @@ def interprate(data):
 
         total_angle = 0
         base_angle = 0
+        pre_total_angle = 0
         temp_angle = 0
         m_motor.set_custom_profile(cleaned_profile_data)
+    elif len(profile_data) == 1:
+        #could be a command
+        m_motor.serial_port.write(profile_data[0])
 
 
 def detect_running(val_list):
@@ -239,7 +243,7 @@ def add_value_ch0(serial_port, val):
         peak_list.pop(0)
 
     prev_val.append(val)
-    if len(prev_val) > predict_span:
+    if len(prev_val) > predict_span: #200
 
         prev_val.pop(0)
         std_value = detect_running(prev_val)
@@ -248,11 +252,12 @@ def add_value_ch0(serial_port, val):
             #print("running")
             if running == False:
                 running = True
+                print("start")
                 direction_test_timer = 0
 
             #wait for span/2 frames
             #reading_direction must be 1
-            if direction_test_timer < predict_span / 2: #10
+            if direction_test_timer < predict_span / 2 and reading_direction == 1: #10
                 direction_test_timer += 1
                 if direction_test_timer == predict_span / 2:
 
@@ -301,17 +306,21 @@ def add_value_ch0(serial_port, val):
                             #topanddown = -1
 
                     reading_direction = 0  #got direction info
-                    running_clockwise = 1  #make sure there is no direction
+                    #running_clockwise = 1  #make sure there is no direction
         else:
             if running_ch1 == False:
                 if running == True:
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-                    if total_angle >= profile_end_angle:
+
+                    print("stop")
+
+                    if total_angle >= profile_end_angle and running_mode == 1:
                         base_angle = 0
                         temp_angle = 0
                         total_angle = 0
+                        pre_total_angle = 0
 
                     m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
 
@@ -399,6 +408,7 @@ def add_value_ch0(serial_port, val):
                     a_sensor_state = 1
 
     
+    #determing temp angle between peak and valley
     if reachingPeak ==  False:
         if temp_peak*temp_valley != 0:
             if goingup:
@@ -425,7 +435,7 @@ def add_value_ch0(serial_port, val):
                 print ("180 finished")
                 profile_end_alert = False
 
-        if demo_name == "locker":
+        if demo_name == "locker" or demo_name == "authoring tool":
             if total_angle < pre_total_angle and total_angle >= 0:
                 m_motor.get_angle(pre_total_angle, mproxity_read)  
                 main.sock.send((("%s"%pre_total_angle) + '\n'))
@@ -433,24 +443,28 @@ def add_value_ch0(serial_port, val):
                 m_motor.get_angle(total_angle, mproxity_read)
                 main.sock.send((("%s"%total_angle) + '\n'))
 
-        pre_total_angle = total_angle 
+                pre_total_angle = total_angle 
+
 
         # print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
 
-        if total_angle > 360:
-            total_angle = 0
-            base_angle = 0
-            temp_angle = 0
+        #if total_angle > 360:
+            #total_angle = 0
+            #base_angle = 0
+            #temp_angle = 0
 
-        if total_angle < 0:
-            total_angle = 360
-            base_angle = 360
-            temp_angle = 0
+        #if total_angle < 0:
+            #total_angle = 360
+            #base_angle = 360
+            #temp_angle = 0
 
-        m_motor.get_angle(total_angle)
+        if demo_name == "locker":
+            main.sock.send((("%s"%total_angle) + '\n'))
+            #m_motor.get_angle(total_angle, mproxity_read)
+        #m_motor.get_angle(total_angle)
 
 def add_value_ch1(val):
     global prev_val_ch1
@@ -474,7 +488,7 @@ def add_value_ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem26241', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -505,11 +519,11 @@ def set_ir_value(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem26231', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
-            # print("ir : %s"%read_val)
+            #print("ir : %s"%read_val)
             set_ir_value(int(read_val))
     except ValueError:
 
@@ -527,6 +541,7 @@ def ir_read():
 
 def main():
     global demo_name
+    global running_mode
 
     parser = argparse.ArgumentParser(description='demo --name string')
     parser.add_argument('--name', action='store', dest='name', default='locker', help='name to execute')
@@ -538,6 +553,7 @@ def main():
         demo_name = "authoring tool"
     elif args.name == 'locker':
         print("locker")
+        running_mode = 2
         demo_name = "locker"
     elif args.name == 'angrybird':
         print("angry bird")
@@ -545,7 +561,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.42.107', 9090))
+    main.sock.connect(('10.31.46.84', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)
@@ -556,9 +572,13 @@ def main():
     #motor
     m_motor.start()
 
-    def close_event():
-        main.sock.close()
 
+    #set profile
+    if demo_name == "locker":
+        m_motor.set_locker(45)  #45 degree
+
+
+    def close_event():
         m_motor.close()
         m_motor.join()
         
@@ -568,12 +588,15 @@ def main():
         ir.do_run = False
         ir.join()
 
+        main.sock.close()
+
     def press(event):
         if event.key == 'q':
             close_event()
         
         elif event.key == 'e' or event.key == 'c' or event.key == 's':
             m_motor.write_serial(event.key)
+            #doesn't work
 
 
     try:

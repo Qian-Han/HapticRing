@@ -8,7 +8,7 @@ class motor(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem26211', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
 
 		self.trigger_state = 0
 		self.target_state = 0
@@ -38,13 +38,16 @@ class motor(Thread):
 		self.custom_cur_step = 0  #total step 20? 30? 40?
 		self.custom_cur_step_itr = 0
 
+		self.bump_interval = 45
+
 	def close(self):
 		self.serial_port.close()
 
 	def write_serial(self, val_string):
 		self.serial_port.write(val_string)
 
-	def set_action_stop(self, angle):			
+	def set_action_stop(self, angle):	
+		#know every time the user stop rotating, such that a profile is activated when starting rotating		
 		if self.trigger_state == 6 and (self.profile_step == 1 or self.profile_step == 0):
 			self.action_stop = True
 
@@ -103,6 +106,14 @@ class motor(Thread):
 		self.is_ready = 0
 		self.custom_profile = c_profile
 
+	def set_locker(self, b_interval):
+		self.trigger_state = 10
+		self.target_state = 61
+		self.profile_step = 0
+		self.is_ready = 0
+		self.bump_interval = b_interval
+		print("61 - locker bump")
+
 	def set_profile(self, prof):
 		if prof == 1:  #no force
 			self.noforce()
@@ -121,18 +132,20 @@ class motor(Thread):
 
 	def set_custom_profile(self, c_profile):
 		self.custome(c_profile)
+		print("customized profile set")
 
 
 	def get_angle(self, val, pval):  #pval for proximtiy value
 
 		if self.first_move == True and (time.time() - self.time_tag > 2):
 			#move a little bit down
-			if pval > 250:
+			if pval > 600:
 				self.serial_port.write("x")
 			self.first_move = False
 		else:
 			#back to the reset position
 			if self.trigger_state == 10:  #reset to a higher position
+				
 				if pval > self.pthreshold_up and self.motor_moving == 0:
 					
 					self.serial_port.write(".")   #moving down
@@ -161,6 +174,7 @@ class motor(Thread):
 					self.motor_moving = 0
 
 			elif self.trigger_state == 11:   #reset to a lower position, real get ready
+			
 				if pval > self.pthreshold_low and self.motor_moving == 0:
 					self.serial_port.write(".")   #moving down
 					self.motor_moving = 1
@@ -367,4 +381,34 @@ class motor(Thread):
 						if self.profile_step == 1:
 							self.profile_step = 0
 							self.reset(7)
+
+			elif self.trigger_state == 61:  #locker bump
+				
+				if self.profile_step == 0:  #ready to do the bump
+					if val - self.val > self.bump_interval or val - self.val < 0:  #need to test
+						self.profile_step = 1
+						
+						#print("going down")
+						for i in range(0,3):
+							self.serial_port.write("c")
+						self.serial_port.write("z")
+
+						self.val = int(val / self.bump_interval) * self.bump_interval 
+
+						self.time_tag = time.time()
+	
+
+
+				elif self.profile_step == 1:  #ready to clear the bump
+					if time.time() - self.time_tag > 0.3:
+
+						#print("going up")
+						self.profile_step = 0
+						
+						for i in range(0,3):
+							self.serial_port.write("e")
+						self.serial_port.write("q")
+						
+				
+
 

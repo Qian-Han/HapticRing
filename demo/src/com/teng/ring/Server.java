@@ -71,8 +71,8 @@ public class Server {
 				printStream = new PrintStream(outputStream);
 				
 				//reply a connection confirmation
-				SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread();
-            	socketServerReplyThread.run();
+				//SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread();
+            	//socketServerReplyThread.run();
             	
             	//keep listening
             	if(activityTag == "angrybird" || activityTag == "locker")
@@ -166,19 +166,27 @@ public class Server {
 					{
 						if((msg = input.readLine()) != null)  //when client lost, will read null
 						{
-							System.out.println(msg);
+							//System.out.println(msg);
 							values = msg.split(",");
 						}else
 						{
 							keepReading = false;
 							continue;
 						}
-						
 					}
 					
 					if(activityTag == "locker")
 					{
 						//values
+						if(values.length == 1)
+						{
+							
+						}else
+						{
+							continue;
+						}
+						
+						LockerActivity.getInstance().rotateAngle = Float.valueOf(values[0]);
 						
 					}
 					

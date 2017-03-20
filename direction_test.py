@@ -27,14 +27,7 @@ from collections import deque
 #threading
 import threading
 
-from motor import motor
 from matplotlib.widgets import Button
-
-mMotor = motor()
-
-
-#from proximity import proximity
-#mProximity = proximity()
 
 axis_span = 1000
 
@@ -47,20 +40,6 @@ avg = 0
 #communication with arduino
 def write_serial(serial_port, val_string):
     serial_port.write(val_string)
-
-
-"""
-tick_event = 0
-def tick_tick(serial_port):
-    global total_angle
-    global tick_event
-
-    if total_angle >= 15 and tick_event == 0:
-        write_serial(serial_port, "e")
-        tick_event = 1
-        print("event 1 called")
-        
-"""
 
 
 def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
@@ -145,8 +124,8 @@ firstTopOrBottom = True
 goingup = True
 reachingPeak = False
 
-hard_peak = 650
-hard_valley = 390
+hard_peak = 530
+hard_valley = 420
 
 temp_peak = hard_peak
 temp_valley = hard_valley
@@ -168,11 +147,9 @@ running_clockwise = 1  #1->yes  -1->no
 direction_test_timer = 0
 reading_direction = 1
 
-
 predict_span = 200
 
-running_mode = 1 # 1 -> reset  2-> no reset
-
+running_mode = 2 # 1 -> reset  2-> no reset
 
 mproxity_read = 0
 
@@ -181,15 +158,59 @@ def detectRunning(val_list):
     return np.std(val_list)
 
 
+itr_dif = 0
+mup = 0
+mdown = 0
+mflat = 0
+
+#this is bad
 def detectMovingDirection(val_list):
-    if running and len(val_list) > 2:
-        vt = val_list[-1] - val_list[0]
-        if vt > 0:
+    global itr_dif
+    global mup
+    global mdown
+    global mflat
+
+    length = len(val_list)
+    if length > 2:
+
+        """
+        mup = 0
+        mdown = 0
+        mflat = 0
+        
+        for itrv in range(length-1):
+            itr_dif = val_list[itrv+1] - val_list[itrv] 
+            if itr_dif > 1:
+                mup+=1
+            elif itr_dif < -1:
+                mdown +=1
+            else:
+                mflat += 1
+
+        print("up %s, down %s, flat %s" %(mup, mdown, mflat))
+
+        if mflat < 20:  
+            if mup > mdown:
+                return 1
+            else:
+                return -1
+        else:
+            #dangeours
+            #should look at the other one
+            print("too many flat")
+            return 0
+
+        """
+
+        itr_dif  = val_list[-1] - val_list[0] 
+
+        if itr_dif > 5:
             return 1
-        elif vt < 0:
+        elif itr_dif  < -5:
             return -1
         else:
             return 0
+
 
 
 def detectState(val, up, down):
@@ -201,15 +222,27 @@ def detectState(val, up, down):
             st = 2
     return st
 
+motion_count = 0
+motion_stop_time = 0
+motion_stop_wait = 1 #at least 1 sec
+dir_span = 50
+
+
+
+avg_val_0 = 0
+
 def AddValue(serial_port, val):
 
     global hard_valley
     global hard_peak
+    global avg_val_0
 
-    if val > hard_peak:
-        val = hard_peak
-    if val < hard_valley:
-        val = hard_valley
+    #if val > hard_peak:
+     #   val = hard_peak
+    #if val < hard_valley:
+     #   val = hard_valley
+
+    avg_val_0 = avg_val_0 + 0.1*(val-avg_val_0)
 
     global avg
     global topanddown
@@ -239,23 +272,26 @@ def AddValue(serial_port, val):
     global r_count
     global running_threshold
     global mproxity_read
-    
-    ch0_buf.append(val)
-    ch0_buf.popleft()
-    
-    """
-    avg = avg + 0.1*(val-avg)
-    ch1_buf.append(avg)
-    ch1_buf.popleft()
-    """
 
-    peak_list.append(val)
+    global motion_count
+    global motion_stop_time
+    
+
+    ch0_buf.append(avg_val_0)
+    ch0_buf.popleft()
+
+    peak_list.append(avg_val_0)
 
     if len(peak_list) > 1000:
         peak_list.pop(0)
 
-    prev_val.append(val)
-    if len(prev_val) > predict_span:
+
+
+
+    prev_val.append(avg_val_0)
+
+
+    if len(prev_val) > predict_span: #200
 
         prev_val.pop(0)
 
@@ -263,40 +299,56 @@ def AddValue(serial_port, val):
 
         #print(std_value)
         
-        if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor
+        if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor, either one works
             #print("running")
-            if running == False:
+            if running == False and time.time() - motion_stop_time > motion_stop_wait:
                 running = True
+
+                print("state %s" %a_sensor_state)
+
+                #which one is running
+                if std_value > running_threshold:
+                    print("ch 0")
+                #print(prev_val)
+
+
+                if running_ch1 == True:
+                    print("ch 1")
+                #print(prev_val_ch1)
+
+
                 direction_test_timer = 0
+                motion_count += 1
+                print("start %s" % motion_count)
 
-            #wait for span/2 frames
-            #reading_direction must be 1
-            if direction_test_timer < predict_span / 2: #10
-                direction_test_timer += 1
-                if direction_test_timer == predict_span / 2:
-
+                #read the direction
+                if reading_direction == 1:
                     if a_sensor_state == -1:
                         running_clockwise = 1
 
                     elif a_sensor_state == 0:
                         #see sensor 2
-                        dir_ch1 = detectMovingDirection(prev_val_ch1)
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
 
-                        #print("ch1 dir: %s"%dir_ch1)
+                        #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
+                        #print(prev_val_ch1[-dir_span:])
+                        #print(prev_val_ch1)
 
                         if dir_ch1 == 1:
-                            running_clockwise = -1
+                            running_clockwise = 1
                             #a_sensor_state = 3
                         elif dir_ch1 == -1:
-                            running_clockwise = 1
+                            running_clockwise = -1
                             #a_sensor_state = 1
 
                     elif a_sensor_state == 1:
                         a_sensor_state = 1
                         #see sensor 1
-                        dir_ch0 = detectMovingDirection(prev_val)
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
 
-                        #print("ch0 dir: %s"%dir_ch0)
+                        #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
+                        #print(prev_val[-dir_span:])
+                        #print(prev_val)
 
                         if dir_ch0 == 1:
                             running_clockwise = -1
@@ -307,22 +359,25 @@ def AddValue(serial_port, val):
 
                     elif a_sensor_state == 2:
                         #see sensor 2
-                        dir_ch1 = detectMovingDirection(prev_val_ch1)
-                        #print("ch1 dir: %s"%dir_ch1)
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+                        #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
+                        #print(prev_val_ch1[-dir_span:])
+                        #print(prev_val_ch1)
 
                         if dir_ch1 == 1:
-                            running_clockwise = 1
+                            running_clockwise = -1
                             #a_sensor_state = 3
                         elif dir_ch1 == -1:
-                            running_clockwise = -1
+                            running_clockwise = 1
                             #a_sensor_state = 1
 
                     elif a_sensor_state == 3:
                         a_sensor_state = 3
                         #see sensor 1
-                        dir_ch0 = detectMovingDirection(prev_val)
-
-                        #print("ch0 dir: %s"%dir_ch0)
+                        dir_ch0 = detectMovingDirection(prev_val[0:100])
+                        #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
+                        #print(prev_val[0:100])
+                        #print(prev_val)
 
                         if dir_ch0 == 1:
                             running_clockwise = 1
@@ -331,41 +386,90 @@ def AddValue(serial_port, val):
                             #topanddown = -1
 
                     reading_direction = 0  #got direction info
+                    print(running_clockwise)             
 
-                    running_clockwise = 1
-                    #print(running_clockwise)
+            """
+            #wait for span/2 frames, no need
+            #reading_direction must be 1
+            if direction_test_timer < dir_span  and reading_direction == 1: #10
+                direction_test_timer += 1
+
+                if direction_test_timer == dir_span:  #predict the direction, should be 100
+
+                    if a_sensor_state == -1:
+                        running_clockwise = 1
+
+                    elif a_sensor_state == 0:
+                        #see sensor 2
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+
+                        print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
+                        print(prev_val_ch1[-dir_span:])
+
+                        if dir_ch1 == 1:
+                            running_clockwise = 1
+                            #a_sensor_state = 3
+                        elif dir_ch1 == -1:
+                            running_clockwise = -1
+                            #a_sensor_state = 1
+
+                    elif a_sensor_state == 1:
+                        a_sensor_state = 1
+                        #see sensor 1
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
+
+                        print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
+                        print(prev_val[-dir_span:])
+
+                        if dir_ch0 == 1:
+                            running_clockwise = -1
+                            #topanddown = 1
+                        elif dir_ch0 == -1:
+                            running_clockwise = 1
 
 
+                    elif a_sensor_state == 2:
+                        #see sensor 2
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+                        print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
+                        print(prev_val_ch1[-dir_span:])
 
-                
-                
-                
+                        if dir_ch1 == 1:
+                            running_clockwise = -1
+                            #a_sensor_state = 3
+                        elif dir_ch1 == -1:
+                            running_clockwise = 1
+                            #a_sensor_state = 1
+
+                    elif a_sensor_state == 3:
+                        a_sensor_state = 3
+                        #see sensor 1
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
+                        print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
+                        print(prev_val[-dir_span:])
+
+                        if dir_ch0 == 1:
+                            running_clockwise = 1
+                        elif dir_ch0 == -1:
+                            running_clockwise = -1
+                            #topanddown = -1
+
+                    reading_direction = 0  #got direction info
+                    print(running_clockwise)                
+            """
 
         else:
             #r_count = r_count + 1
             #print(r_count)  #predict as not running
             if running_ch1 == False:
                 if running == True:
+
+                    print("stop, state = %s" % a_sensor_state)
+                    print("")
+                    motion_stop_time = time.time()
+
                     running = False
                     reading_direction = 1 #waiting for diretion info
-
-                    #print("             %s"%a_sensor_state)
-
-                    """
-                    temp_st = detectState(val, state_cut_up, state_cut_down)
-                    if temp_st != -1:
-                        a_sensor_state = temp_st
-
-                    #del prev_val_ch1[:]
-                    """
-
-                    # if running_mode == 1 and total_angle > 300:
-                    if running_mode == 1 and total_angle > 180:
-                        base_angle = 0
-                        temp_angle = 0
-                        total_angle = 0
-
-                    mMotor.set_action_stop(total_angle)
 
                     #record stop points
                     stop_x.append(axis_span)
@@ -380,41 +484,6 @@ def AddValue(serial_port, val):
 
 
     if topanddown == 1:
-        
-        """
-        filter_peaks = detect_peaks(peak_list, mph=920, mpd=20, threshold=0, edge='rising',
-                 kpsh=False, valley=False, show=False, ax=None)
-    
-        if len(filter_peaks)>0:  #found a peak
-            peak_x.append(axis_span)
-            peak_y.append(peak_list[filter_peaks[-1]])
-            temp_peak = peak_list[filter_peaks[-1]]
-            goingup = False
-            del peak_list[:]
-            topanddown = 2
-
-            #angle cal
-            if firstTopOrBottom:
-                base_angle = 0
-                temp_angle = 0
-                firstTopOrBottom = False
-                #initial closewise, see sensor 2
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = 1 #-1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1
-
-            else:
-                base_angle += (20*running_clockwise)
-
-                temp_angle = 0
-                reachingPeak = True
-                state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
-
-            a_sensor_state = 0
-
-            """
 
         if val==hard_peak:
             peak_x.append(axis_span)
@@ -473,45 +542,15 @@ def AddValue(serial_port, val):
             goingup = False
             reachingPeak = False
 
-            if reading_direction == 0:
+            if reading_direction == 0:  #already got the direction
                 if running_clockwise == 1:
                     a_sensor_state = 1
                 elif running_clockwise == -1:
                     a_sensor_state = 3
 
+                a_sensor_state = 1 #for testing
+
     elif topanddown == -1:
-
-        """
-        filter_valleys = detect_peaks(peak_list, mph=-50, mpd=20, threshold=0, edge='rising',
-                 kpsh=False, valley=True, show=False, ax=None)
-
-        if len(filter_valleys)>0:  #found a valley
-            valley_x.append(axis_span)
-            valley_y.append(peak_list[filter_valleys[-1]])
-            temp_valley = peak_list[filter_valleys[-1]]
-            goingup = True
-            del peak_list[:]
-            topanddown = -2
-
-            if firstTopOrBottom:
-                base_angle = 0
-                temp_angle = 0
-                firstTopOrBottom = False
-                #initial closewise, see sensor 2
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = 1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1 #-1
-
-            else:
-                base_angle += (20*running_clockwise)
-                temp_angle = 0
-                reachingPeak = True
-                state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
-
-            a_sensor_state = 2
-        """
 
         if val == hard_valley:
 
@@ -570,6 +609,7 @@ def AddValue(serial_port, val):
                 elif running_clockwise == -1:
                     a_sensor_state = 1
 
+                a_sensor_state = 3 #for testing
             #print(topanddown)
 
     #print(topanddown)
@@ -592,23 +632,9 @@ def AddValue(serial_port, val):
         if total_angle < 0:
             total_angle = 0
 
-        #mproxity_read = mProximity.read_value_thread()
-        #mproxity_read = mProximity.prox_read
-
-
-        if total_angle < pre_total_angle:
-            #total_angle = pre_total_angle
-            
-            mMotor.get_angle(pre_total_angle, mproxity_read)  
-        else:
-            mMotor.get_angle(total_angle, mproxity_read)  
-        
-
         pre_total_angle = total_angle 
-        #print(mproxity_read)
 
     if running_mode == 2 and firstTopOrBottom == False:  #no reset
-        #print("base%s, temp%s"%(base_angle, temp_angle))
         total_angle = base_angle + temp_angle * running_clockwise
 
         if total_angle > 360:
@@ -621,15 +647,9 @@ def AddValue(serial_port, val):
             base_angle = 360
             temp_angle = 0
 
-
-        #if mMotor.trigger_state > 0:
-        # mMotor.get_angle(total_angle)
-
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
             peak_x[itrx] = peak_x[itrx] - 1
-
-            #print(peak_x[itrx])
 
     if len(valley_x) > 0:
         for itrx in range(len(valley_x)):
@@ -639,17 +659,13 @@ def AddValue(serial_port, val):
         for itrx in range(len(stop_x)):
             stop_x[itrx] = stop_x[itrx] - 1
 
-    #print(peak_x)
-
-    
-
-
-
 
 
 #variables for b sensor
 prev_val_ch1 = []
 running_ch1 = False
+avg_val_1 = 0
+
 
 def AddValue_Ch1(val):
 
@@ -658,11 +674,14 @@ def AddValue_Ch1(val):
     global running_ch1
     global predict_span
     global running_threshold
+    global avg_val_1
     
-    ch1_buf.append(val)
+    avg_val_1 = avg_val_1 + 0.1 * (val - avg_val_1)
+    
+    ch1_buf.append(avg_val_1)
     ch1_buf.popleft()
 
-    prev_val_ch1.append(val)
+    prev_val_ch1.append(avg_val_1)
     if len(prev_val_ch1) > predict_span:
         prev_val_ch1.pop(0)
 
@@ -683,7 +702,7 @@ def serial_read():
     global buffer_interval
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
     
     sx = 0
     try:
@@ -693,13 +712,9 @@ def serial_read():
             read_val_list = [x.strip() for x in read_val.split(',')]
             #print("read:%s"%(read_val))
 
-
             if buffer_interval > 0:
                 buffer_interval -= 1
             else:
-                
-
-
                 if len(read_val_list) == 2:
                     AddValue(serial_port, int(read_val_list[0])) 
                     AddValue_Ch1(int(read_val_list[1]))         
@@ -718,33 +733,6 @@ def serial_read():
     print('existing...')
     exit()
 
-
-
-def SetIRValue(val):
-    global mproxity_read
-
-    mproxity_read = val
-
-
-def ir_read():
-    ir = threading.currentThread()
-
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
-
-    try:
-        while getattr(ir, "do_run", True):
-            read_val = serial_port.readline()
-            SetIRValue(int(read_val))
-
-
-    except ValueError:
-        pass
-
-    while serial_port.inWaiting():
-        read_val = serial_port.read(serial_port.inWaiting())
-        print("ir Read:%s" % (binascii.hexlify(read_val)))
-    
-    serial_port.close()
 #############################################################################################
 
 
@@ -755,171 +743,21 @@ def main():
     global temp_angle
     global base_angle
 
-
-    ir = threading.Thread(target=ir_read)
-    ir.start()
-
-
     t = threading.Thread(target=serial_read)
     t.start()
 
-    mMotor.start()
-
-
-    def handle_close(evt):
-        mMotor.close()
-        mMotor.join()
-
-        
+    def handle_close(evt):        
         t.do_run = False
         t.join()
 
-        ir.do_run = False
-        ir.join()
-
-
-
-
-    def press(event):
-        #if event.key == 'r':  #reset motor
-        mMotor.write_serial(event.key)
-
-    def reset(event):
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
+        exit()
 
     fig, (p1, p2) = plt.subplots(2, 1, dpi = 80)
+    range_max = 650
+    range_min = 300
 
     fig.canvas.mpl_connect('close_event', handle_close)
-    fig.canvas.mpl_connect('key_press_event', press)
 
-    # axwall = plt.axes([0.4, 0.01, 0.05, 0.05])
-    # axtuk = plt.axes([0.35, 0.01, 0.05, 0.05])
-    
-    
-    # axknob = plt.axes([0.2, 0.01, 0.05, 0.05])
-    # axtune_up = plt.axes([0.1, 0.01, 0.05, 0.05])
-    # axtune_down = plt.axes([0.15, 0.01, 0.05, 0.05])
-    axnoforce = plt.axes([0.2 - 0.1, 0.01, 0.1, 0.05])
-    axforce = plt.axes([0.3- 0.1, 0.01, 0.1, 0.05])
-    axstop = plt.axes([0.4- 0.1, 0.01, 0.1, 0.05])
-    axspring = plt.axes([0.5- 0.1, 0.01, 0.1, 0.05])
-    axantispring = plt.axes([0.6- 0.1, 0.01, 0.15, 0.05])
-    axtick_bump = plt.axes([0.75- 0.1, 0.01, 0.12, 0.05])
-    # axtick_fast = plt.axes([0.87- 0.1, 0.01, 0.12, 0.05])
-
-    def click_noforce(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.noforce(event)
-
-        print("noforce clicked")  
-
-    def click_force(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.force(event)
-
-        print("force clicked")
-
-    def click_stop(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.stop(event)
-
-        print("stop clicked")
-
-
-    def click_spring(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.spring(event)
-
-        print("spring clicked")  
-
-    def click_antispring(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.antispring(event)
-
-        print("antispring clicked")
-
-    def click_tick_bump(event):
-        global base_angle
-        global temp_angle
-        global total_angle
-        base_angle = 0
-        temp_angle = 0
-        total_angle = 0
-        mMotor.tick_bump(event)
-
-        print("tick_bump clicked")
-
-
-
-
-    bnoforce = Button(axnoforce, 'No Force')   # When use on_clicked function, it has to have a para.
-    bnoforce.on_clicked(click_noforce)
-
-    bforce = Button(axforce, 'Force')
-    bforce.on_clicked(click_force)
-
-    bstop = Button(axstop, 'Stop')
-    bstop.on_clicked(click_stop)
-
-    bspring = Button(axspring, 'Spring')
-    #bspring.on_clicked(mMotor.spring)
-    bspring.on_clicked(click_spring)
-
-    bantispring = Button(axantispring, 'Anti-Spring')
-    bantispring.on_clicked(click_antispring)
-
-    btick_bump = Button(axtick_bump, 'Tick_bump')
-    btick_bump.on_clicked(click_tick_bump)
-
-    # btick_fast = Button(axtick_fast, 'Tick_fast')
-    # btick_fast.on_clicked(mMotor.tick_fast)
-
-    # bwall = Button(axwall, 'Wall')
-    # bwall.on_clicked(mMotor.wall)
-
-    # btuk = Button(axtuk, 'Tuk')
-    # btuk.on_clicked(mMotor.tuk)
-
-    
- 
-    # bknob = Button(axknob, 'Knob')
-    # bknob.on_clicked(mMotor.knob)
-
-    # btune_up = Button(axtune_up, '+1')
-    # btune_up.on_clicked(mMotor.tune_up)
-    # btune_down = Button(axtune_down, '-1')
-    # btune_down.on_clicked(mMotor.tune_down)
-
-
-    range_max = 1100
-    range_min = -10
 
     plot_data, = p1.plot(ch0_buf, animated=True)
     plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
