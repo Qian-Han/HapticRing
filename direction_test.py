@@ -141,7 +141,7 @@ running = False
 prev_val = [] #5 frames
 diff_prev_val = []
 r_count = 0
-running_threshold = 7.0
+running_threshold = 7.0 #very sensitive
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
@@ -230,19 +230,32 @@ dir_span = 50
 
 
 avg_val_0 = 0
+prev_avg_val_0 = 0
+smooth_dt = (1.0 / 800)
+smooth_RC = 0.05
+smooth_alpha = smooth_dt / (smooth_RC + smooth_dt)
+
 
 def AddValue(serial_port, val):
 
     global hard_valley
     global hard_peak
     global avg_val_0
+    global prev_avg_val_0
 
-    #if val > hard_peak:
-     #   val = hard_peak
-    #if val < hard_valley:
-     #   val = hard_valley
+    
+    #avg_val_0 = avg_val_0 + 0.1*(val-avg_val_0)
+    avg_val_0 = (smooth_alpha * val) + (1.0 - smooth_alpha) * prev_avg_val_0
 
-    avg_val_0 = avg_val_0 + 0.1*(val-avg_val_0)
+    prev_avg_val_0 = avg_val_0
+
+
+    if val > hard_peak:
+        val = hard_peak
+    if val < hard_valley:
+        val = hard_valley
+
+
 
     global avg
     global topanddown
@@ -280,14 +293,12 @@ def AddValue(serial_port, val):
     ch0_buf.append(avg_val_0)
     ch0_buf.popleft()
 
-    peak_list.append(avg_val_0)
+    peak_list.append(val)
 
     if len(peak_list) > 1000:
         peak_list.pop(0)
 
-
-
-
+    #for motion state detection
     prev_val.append(avg_val_0)
 
 
@@ -665,7 +676,7 @@ def AddValue(serial_port, val):
 prev_val_ch1 = []
 running_ch1 = False
 avg_val_1 = 0
-
+prev_avg_val_1 = 0
 
 def AddValue_Ch1(val):
 
@@ -675,8 +686,14 @@ def AddValue_Ch1(val):
     global predict_span
     global running_threshold
     global avg_val_1
+    global prev_avg_val_1
     
-    avg_val_1 = avg_val_1 + 0.1 * (val - avg_val_1)
+    #avg_val_1 = avg_val_1 + 0.1 * (val - avg_val_1)
+    avg_val_1 = (smooth_alpha * val) + (1.0 - smooth_alpha) * prev_avg_val_1
+
+
+    prev_avg_val_1 = avg_val_1
+
     
     ch1_buf.append(avg_val_1)
     ch1_buf.popleft()
