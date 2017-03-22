@@ -141,7 +141,7 @@ running = False
 prev_val = [] #5 frames
 diff_prev_val = []
 r_count = 0
-running_threshold = 7.0 #very sensitive
+running_threshold = 15.0 #very sensitive
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
@@ -204,9 +204,9 @@ def detectMovingDirection(val_list):
 
         itr_dif  = val_list[-1] - val_list[0] 
 
-        if itr_dif > 5:
+        if itr_dif > 3:
             return 1
-        elif itr_dif  < -5:
+        elif itr_dif  < -3:
             return -1
         else:
             return 0
@@ -225,15 +225,19 @@ def detectState(val, up, down):
 motion_count = 0
 motion_stop_time = 0
 motion_stop_wait = 1 #at least 1 sec
-dir_span = 20
 
 
+dir_span = 25
+
+dir_buff = deque(0 for _ in range(axis_span))
 
 avg_val_0 = 0
 prev_avg_val_0 = 0
 smooth_dt = (1.0 / 800)
 smooth_RC = 0.05
 smooth_alpha = smooth_dt / (smooth_RC + smooth_dt)
+
+
 
 
 def AddValue(serial_port, val):
@@ -291,6 +295,9 @@ def AddValue(serial_port, val):
     ch0_buf.append(avg_val_0)
     ch0_buf.popleft()
 
+    dir_buff.append(0)
+    dir_buff.popleft()
+
     peak_list.append(val)
 
     if len(peak_list) > 1000:
@@ -308,22 +315,18 @@ def AddValue(serial_port, val):
 
         #print(std_value)
         
-        if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor, either one works
+        if std_value > running_threshold or std_value_ch1 > running_threshold:  # predict as running, a sensor or b sensor, either one works
             #print("running")
             if running == False and time.time() - motion_stop_time > motion_stop_wait:
                 running = True
 
-                print("state %s" %a_sensor_state)
+                #screenshot
+                dir_xxxx = -dir_span
+                dir_yyyy = 0
+                for trippp in prev_val[-dir_span:]:
+                	dir_buff[-dir_span + dir_yyyy] = trippp
+                	dir_yyyy += 1
 
-                #which one is running
-                if std_value > running_threshold:
-                    print("ch 0")
-                #print(prev_val)
-
-
-                if running_ch1 == True:
-                    print("ch 1")
-                #print(prev_val_ch1)
 
 
                 direction_test_timer = 0
@@ -483,19 +486,23 @@ def AddValue(serial_port, val):
         else:
             #r_count = r_count + 1
             #print(r_count)  #predict as not running
-            if running_ch1 == False:
-                if running == True:
+            #if running_ch1 == False:
+            if running == True:
 
-                    print("stop, state = %s" % a_sensor_state)
-                    print("")
-                    motion_stop_time = time.time()
+                print("stop, state = %s" % a_sensor_state)
+                print("")
+                motion_stop_time = time.time()
 
-                    running = False
-                    reading_direction = 1 #waiting for diretion info
+                running = False
+                reading_direction = 1 #waiting for diretion info
 
-                    #record stop points
-                    stop_x.append(axis_span)
-                    stop_y.append(val)
+                #record stop points
+                stop_x.append(axis_span)
+                stop_y.append(val)
+
+                #plt.savefig('%s.png'%(time.time()))
+
+                os.system('screencapture %s.png'%(time.time()))
 
         
        
@@ -669,6 +676,7 @@ def AddValue(serial_port, val):
             base_angle = 360
             temp_angle = 0
 
+
     if len(peak_x)>0:
         for itrx in range(len(peak_x)):
             peak_x[itrx] = peak_x[itrx] - 1
@@ -679,7 +687,7 @@ def AddValue(serial_port, val):
 
     if len(stop_x) > 0:
         for itrx in range(len(stop_x)):
-            stop_x[itrx] = stop_x[itrx] - 1
+           	stop_x[itrx] = stop_x[itrx] - 1
 
 
 
@@ -688,6 +696,8 @@ prev_val_ch1 = []
 running_ch1 = False
 avg_val_1 = 0
 prev_avg_val_1 = 0
+
+std_value_ch1 = 0
 
 def AddValue_Ch1(val):
 
@@ -698,6 +708,8 @@ def AddValue_Ch1(val):
     global running_threshold
     global avg_val_1
     global prev_avg_val_1
+
+    global std_value_ch1
     
     #avg_val_1 = avg_val_1 + 0.1 * (val - avg_val_1)
     avg_val_1 = (smooth_alpha * val) + (1.0 - smooth_alpha) * prev_avg_val_1
@@ -705,7 +717,6 @@ def AddValue_Ch1(val):
 
     prev_avg_val_1 = avg_val_1
 
-    
     ch1_buf.append(avg_val_1)
     ch1_buf.popleft()
 
@@ -730,7 +741,7 @@ def serial_read():
     global buffer_interval
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem26241', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
     
     sx = 0
     try:
@@ -789,6 +800,8 @@ def main():
 
     plot_data, = p1.plot(ch0_buf, animated=True)
     plot_data_ch1, = p1.plot(ch1_buf, color="green", animated=True)
+
+    plot_dir, = p1.plot(dir_buff, color="red", animated=True)
     
     wedge = mpatches.Wedge((0.5, 0.5), 0.2, 0, 0)
     p2.add_patch(wedge)
@@ -810,6 +823,10 @@ def main():
         
         plot_data_ch1.set_ydata(ch1_buf)
         plot_data_ch1.set_xdata(range(len(ch1_buf)))
+
+        plot_dir.set_ydata(dir_buff)
+        plot_dir.set_xdata(range(len(dir_buff)))
+
         #wedge.theta1 += 0.1
         #wedge._recompute_path()
         wedge.theta2 = total_angle
@@ -826,7 +843,7 @@ def main():
         plot_stop.set_ydata(stop_y)
         plot_stop.set_xdata(stop_x)
 
-        return [plot_data, plot_data_ch1, wedge, txt_angle, plot_peak, plot_valley, plot_stop]
+        return [plot_data, plot_data_ch1, plot_dir, wedge, txt_angle, plot_peak, plot_valley, plot_stop]
     
     ani = animation.FuncAnimation(fig, animate, range(axis_span), 
                                   interval=20, blit=True)  #20 delay, frames refresh 50 times per sec
