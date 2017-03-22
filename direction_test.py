@@ -225,7 +225,7 @@ def detectState(val, up, down):
 motion_count = 0
 motion_stop_time = 0
 motion_stop_wait = 1 #at least 1 sec
-dir_span = 50
+dir_span = 20
 
 
 
@@ -254,8 +254,6 @@ def AddValue(serial_port, val):
         val = hard_peak
     if val < hard_valley:
         val = hard_valley
-
-
 
     global avg
     global topanddown
@@ -339,9 +337,11 @@ def AddValue(serial_port, val):
 
                     elif a_sensor_state == 0:
                         #see sensor 2
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
                         dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
 
-                        #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
+
+                        print("state: %s, ch0 dir: %s, ch1 dir: %s"%(a_sensor_state, dir_ch0, dir_ch1))
                         #print(prev_val_ch1[-dir_span:])
                         #print(prev_val_ch1)
 
@@ -356,6 +356,9 @@ def AddValue(serial_port, val):
                         a_sensor_state = 1
                         #see sensor 1
                         dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+
+                        print("state: %s, ch0 dir: %s, ch1 dir: %s"%(a_sensor_state, dir_ch0, dir_ch1))
 
                         #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
                         #print(prev_val[-dir_span:])
@@ -370,7 +373,11 @@ def AddValue(serial_port, val):
 
                     elif a_sensor_state == 2:
                         #see sensor 2
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
                         dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+
+
+                        print("state: %s, ch0 dir: %s, ch1 dir: %s"%(a_sensor_state, dir_ch0, dir_ch1))
                         #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
                         #print(prev_val_ch1[-dir_span:])
                         #print(prev_val_ch1)
@@ -385,7 +392,11 @@ def AddValue(serial_port, val):
                     elif a_sensor_state == 3:
                         a_sensor_state = 3
                         #see sensor 1
-                        dir_ch0 = detectMovingDirection(prev_val[0:100])
+                        dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
+                        dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
+
+
+                        print("state: %s, ch0 dir: %s, ch1 dir: %s"%(a_sensor_state, dir_ch0, dir_ch1))
                         #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
                         #print(prev_val[0:100])
                         #print(prev_val)
@@ -719,7 +730,7 @@ def serial_read():
     global buffer_interval
     t = threading.currentThread()
 
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem26241', baudrate=115200)
     
     sx = 0
     try:
