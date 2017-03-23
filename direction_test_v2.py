@@ -133,7 +133,7 @@ temp_peak = hard_peak
 temp_valley = hard_valley
 
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
-state_cut_ratio = 0.001
+state_cut_ratio = 0.05
 state_cut_up = 0
 state_cut_down = 0
 b_sensor_dir = 1 #1-increase 2-decrease
@@ -141,6 +141,8 @@ b_sensor_dir = 1 #1-increase 2-decrease
 #running and notrunning
 running = False
 prev_val = [] #5 frames
+prev_mid = 0
+close_to_top = 0
 diff_prev_val = []
 r_count = 0
 running_threshold = 15.0 #very sensitive
@@ -276,6 +278,8 @@ def AddValue(serial_port, val):
     global state_cut_down
     global a_sensor_state
     global prev_val
+    global prev_mid
+    global close_to_top
     global prev_val_ch1
     global diff_prev_val
     global running
@@ -344,10 +348,17 @@ def AddValue(serial_port, val):
                         dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
                         dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
 
-                        if (prev_val[-dir_span] < hard_peak and prev_val[-1] > hard_valley) or (prev_val[-dir_span] > hard_valley and prev_val[-1] < hard_peak):
-                            dir_using_channel = 0
-                        else:
+
+                        #prev_mid = (prev_val[-dir_span]  + prev_val[-1])/2 
+
+                        if prev_mid < state_cut_down:
                             dir_using_channel = 1
+                            close_to_top = -1
+                        elif prev_mid > state_cut_up:
+                            dir_using_channel = 1
+                            close_to_top = 1
+                        else:
+                            dir_using_channel = 0
 
                         #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
                         #print(prev_val[-dir_span:])
@@ -363,10 +374,18 @@ def AddValue(serial_port, val):
                             print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
 
                         else:
-                            if dir_ch1 == 1:
-                                running_clockwise = 1
-                            elif dir_ch1 == -1:
-                                running_clockwise = -1
+
+                            #pay special attention
+                            if close_to_top == 1:
+                                if dir_ch1 == 1:
+                                    running_clockwise = 1
+                                elif dir_ch1 == -1:
+                                    running_clockwise = -1
+                            elif close_to_top == -1:
+                                if dir_ch1 == 1:
+                                    running_clockwise = -1
+                                elif dir_ch1 == -1:
+                                    running_clockwise = 1
 
                             print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
                         
@@ -377,10 +396,16 @@ def AddValue(serial_port, val):
                         dir_ch0 = detectMovingDirection(prev_val[-dir_span:])
                         dir_ch1 = detectMovingDirection(prev_val_ch1[-dir_span:])
 
-                        if (prev_val[-dir_span] < hard_peak and prev_val[-1] > hard_valley) or (prev_val[-dir_span] > hard_valley and prev_val[-1] < hard_peak):
-                            dir_using_channel = 0
-                        else:
+                        #prev_mid = (prev_val[-dir_span]  + prev_val[-1])/2 
+
+                        if prev_mid < state_cut_down:
                             dir_using_channel = 1
+                            close_to_top = -1
+                        elif prev_mid > state_cut_up:
+                            dir_using_channel = 1
+                            close_to_top = 1
+                        else:
+                            dir_using_channel = 0
                         
                         #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
                         #print(prev_val_ch1[-dir_span:])
@@ -395,13 +420,22 @@ def AddValue(serial_port, val):
                                     #a_sensor_state = 1
 
                             print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
-                        else:
-                            if dir_ch1 == 1:
-                                running_clockwise = -1
-                                    #a_sensor_state = 3
-                            elif dir_ch1 == -1:
-                                running_clockwise = 1
-                                    #a_sensor_state = 1
+                        else:  
+                            #pay special attention here
+                            if close_to_top == 1:
+                                if dir_ch1 == 1:
+                                    running_clockwise = 1
+                                        #a_sensor_state = 3
+                                elif dir_ch1 == -1:
+                                    running_clockwise = -1
+                                        #a_sensor_state = 1
+                            elif close_to_top == -1:
+                                if dir_ch1 == 1:
+                                    running_clockwise = -1
+                                        #a_sensor_state = 3
+                                elif dir_ch1 == -1:
+                                    running_clockwise = 1
+                                        #a_sensor_state = 1
 
                             print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
 
@@ -436,11 +470,18 @@ def AddValue(serial_port, val):
 
                 #plt.savefig('%s.png'%(time.time()))
 
-                os.system('screencapture %s.png'%(time.time()))
+                prev_mid = val
 
-        
-       
-        
+                #os.system('screencapture %s.png'%(time.time()))
+
+
+            else:
+
+                #regular check
+                if std_value < 0.1:
+                    #print("check valid")
+                    prev_mid = val
+                
     #running or not
     #print(running)
     #print("             %s"%(val))
