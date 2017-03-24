@@ -168,9 +168,21 @@ def interprate(data):
     elif len(profile_data) == 1:
         
         if profile_data[0] == '62':
-            m_motor.set_stop(total_angle)
+            m_motor.set_locker_stop(total_angle)
         elif profile_data[0] == '63':
-            m_motor.set_no_force()
+            m_motor.set_locker_no_force()
+        elif profile_data[0] == '72':
+            total_angle = 0
+            base_angle = 0
+            pre_total_angle = 0
+            temp_angle = 0
+            m_motor.set_timer_force()
+        elif profile_data[0] == '73':
+            total_angle = 0
+            base_angle = 0
+            pre_total_angle = 0
+            temp_angle = 0
+            m_motor.set_timer_stop()
         else:
             m_motor.serial_port.write(profile_data[0])
 
@@ -314,13 +326,15 @@ def add_value_ch0(serial_port, val):
                         dir_ch0 = detect_moving_direction(prev_val)
 
 
+                    if demo_name == "locker":
+                        running_clockwise = order_set[order_itr]
+                        order_itr+=1
 
-                    running_clockwise = order_set[order_itr]
-                    order_itr+=1
+                        if order_itr == 7:
+                            order_itr = 0
 
-
-                    if order_itr == 7:
-                        order_itr = 0
+                    elif demo_name == "timer":
+                        running_clockwise = 1
                     
 
                     reading_direction = 0  #got direction info
@@ -335,9 +349,9 @@ def add_value_ch0(serial_port, val):
                     print("stop")
 
                     #send to server
-                    main.sock.send((("%s, 1"%running_clockwise) + '\n'))
-
-                    print("sent: %s" % running_clockwise)
+                    if demo_name == "locker":
+                        main.sock.send((("%s, 1"%running_clockwise) + '\n'))
+                        print("sent: %s" % running_clockwise)
 
                     if total_angle >= profile_end_angle and running_mode == 1:
                         base_angle = 0
@@ -471,7 +485,7 @@ def add_value_ch0(serial_port, val):
 
         # print(mproxity_read)
 
-    if running_mode == 2 and firstTopOrBottom == False:  #no reset
+    if running_mode == 2: #and firstTopOrBottom == False:  #no reset
         total_angle = base_angle + temp_angle * running_clockwise
 
         #if total_angle > 360:
@@ -486,6 +500,9 @@ def add_value_ch0(serial_port, val):
 
         if demo_name == "locker":
             main.sock.send((("%s"%total_angle) + '\n'))
+            m_motor.get_angle(total_angle, mproxity_read)
+
+        elif demo_name == "timer":
             m_motor.get_angle(total_angle, mproxity_read)
         #m_motor.get_angle(total_angle)
 
@@ -585,17 +602,20 @@ def main():
         print("locker")
         running_mode = 2
         demo_name = "locker"
-
         #correct
         #order_set = [1, 1, 1, -1, -1, 1, -1]
         #wrong
         order_set = [1, 1, -1, -1, 1, 1, -1]
-
         order_itr = 0
 
     elif args.name == 'angrybird':
         print("angry bird")
         demo_name = "angry bird"
+
+    elif args.name == 'timer':
+        print("timer")
+        running_mode = 2
+        demo_name = "timer"
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -615,6 +635,8 @@ def main():
     if demo_name == "locker":
         m_motor.set_locker(45)  #45 degree
 
+    elif demo_name == "timer":
+        m_motor.set_timer()
 
     def close_event():
         m_motor.close()

@@ -120,14 +120,14 @@ class motor(Thread):
 		self.bump_interval = b_interval
 		print("61 - locker bump")
 
-	def set_no_force(self):
+	def set_locker_no_force(self):
 		self.trigger_state = 10  #to reset
 		self.target_state = 63
 		self.is_ready = 0
 		self.profile_step = 0
 		print("63 - no force")
 
-	def set_stop(self, cval):
+	def set_locker_stop(self, cval):
 		self.trigger_state = 10  #to reset
 		self.target_state = 62
 		self.is_ready = 0
@@ -138,7 +138,26 @@ class motor(Thread):
 
 
 
+	def set_timer(self):
+		self.trigger_state = 10
+		self.target_state = 71
+		self.is_ready = 0
+		self.profile_step = 0
+		print("71 - no force")
 
+	def set_timer_force(self):
+		self.trigger_state = 10
+		self.target_state = 72
+		self.is_ready = 0
+		self.profile_step = 0
+		print("72 - force")
+
+	def set_timer_stop(self):
+		self.trigger_state = 10  #to reset
+		self.target_state = 73
+		self.is_ready = 0
+		self.profile_step = 0
+		print("73 - stop")
 
 
 
@@ -446,7 +465,26 @@ class motor(Thread):
 							#this is it.. has to quit
 
 
-			#elif self.trigger_state == 63:
+			elif self.trigger_state == 72:  #force
+				if self.is_ready == 0:
+					for i in range(0,2):
+						self.serial_port.write("c")
+					self.is_ready = 1
+				else:
+					#find 90, a full stop
+					if self.profile_step == 0:
+						if abs(val) > 90:
+							self.profile_step = 1
+							for i in range(0,5):
+								self.serial_port.write("c") 
+
+			elif self.trigger_state == 73: #just stop
+				if self.profile_step == 0:
+					self.profile_step = 1
+					for i in range(0,5):
+						self.serial_port.write("c") 
+
+
 
 
 
