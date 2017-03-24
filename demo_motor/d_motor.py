@@ -106,6 +106,12 @@ class motor(Thread):
 		self.is_ready = 0
 		self.custom_profile = c_profile
 
+
+
+
+
+
+
 	def set_locker(self, b_interval):
 		self.trigger_state = 10
 		self.target_state = 61
@@ -113,6 +119,28 @@ class motor(Thread):
 		self.is_ready = 0
 		self.bump_interval = b_interval
 		print("61 - locker bump")
+
+	def set_no_force(self):
+		self.trigger_state = 10  #to reset
+		self.target_state = 63
+		self.is_ready = 0
+		self.profile_step = 0
+		print("63 - no force")
+
+	def set_stop(self, cval):
+		self.trigger_state = 10  #to reset
+		self.target_state = 62
+		self.is_ready = 0
+		self.profile_step = 0
+		self.val = cval
+		print("62 - stop")
+
+
+
+
+
+
+
 
 	def set_profile(self, prof):
 		if prof == 1:  #no force
@@ -382,32 +410,46 @@ class motor(Thread):
 							self.profile_step = 0
 							self.reset(7)
 
-			elif self.trigger_state == 61:  #locker bump
-				
-				if self.profile_step == 0:  #ready to do the bump
-					if val - self.val > self.bump_interval or val - self.val < 0:  #need to test
+			elif self.trigger_state == 61:  #locker bumps
+				if val >= self.action_start and val <= (self.action_end - 20):
+
+					if self.profile_step == 0:  #ready to do the bump
+						if val - self.val > self.bump_interval or val - self.val < 0:  #need to test
+							self.profile_step = 1
+							
+							#print("going down")
+							for i in range(0,3):
+								self.serial_port.write("c")
+							self.serial_port.write("z")
+
+							self.val = int(val / self.bump_interval) * self.bump_interval 
+
+							self.time_tag = time.time()
+		
+
+					elif self.profile_step == 1:  #ready to clear the bump
+						if time.time() - self.time_tag > 0.3:
+
+							#print("going up")
+							self.profile_step = 0
+							
+							for i in range(0,3):
+								self.serial_port.write("e")
+							self.serial_port.write("q")
+
+			elif self.trigger_state == 62:
+				if self.profile_step == 0:
+					if abs(val - self.val) > 20:
 						self.profile_step = 1
-						
-						#print("going down")
-						for i in range(0,3):
-							self.serial_port.write("c")
-						self.serial_port.write("z")
-
-						self.val = int(val / self.bump_interval) * self.bump_interval 
-
-						self.time_tag = time.time()
-	
+						for i in range(0,5):
+							self.serial_port.write("c") 
+							#this is it.. has to quit
 
 
-				elif self.profile_step == 1:  #ready to clear the bump
-					if time.time() - self.time_tag > 0.3:
+			#elif self.trigger_state == 63:
 
-						#print("going up")
-						self.profile_step = 0
-						
-						for i in range(0,3):
-							self.serial_port.write("e")
-						self.serial_port.write("q")
+
+
 						
 				
 

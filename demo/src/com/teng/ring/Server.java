@@ -191,6 +191,9 @@ public class Server {
 								//should check 
 								LockerActivity.getInstance().checkAnswer();
 								
+							}else if(LockerActivity.getInstance().anserIter == 7)
+							{
+								LockerActivity.getInstance().showAnswer();
 							}
 						}
 						else

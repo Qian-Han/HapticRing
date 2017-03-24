@@ -16,10 +16,13 @@ public class LockerActivity extends PApplet{
 	public int rotateDirection = 1;
 	private Server server;
 	
-	public boolean isLock = true;
+	public int isLock = 1;
+	public boolean showingAnswer = false;
 	public int[] password = {1, 1, 1, -1, -1, 1};
 	public int[] userAnswer;
 	public int anserIter = 0;
+	
+	private int time;
 	
 	
 	public static LockerActivity instance;
@@ -46,7 +49,7 @@ public class LockerActivity extends PApplet{
     	locker = loadImage("locker_outer.png");
     	rotator = loadImage("locker_inner.png");
     	
-    	userAnswer = new int[6];
+    	userAnswer = new int[7];
     	
     	try {
 			server = new Server(activityTag);
@@ -74,15 +77,33 @@ public class LockerActivity extends PApplet{
     	textSize(122);
     	fill(100);
     	
-    	if(isLock)
+    	if(isLock == 1)
     	{
     		text("LOCK", 580, 800);
-    	}else
+    	}else if(isLock == 2 && showingAnswer)
     	{
     		text("UNLOCK", 500, 800);
     		
     		//do something
     		
+    		if(millis() - time >= 2000)
+    		{
+    			//isLock = 1; //should be somthing else
+    			if(this.frame.isVisible())
+    			{
+    				this.frame.setVisible(false);
+    			}
+    			
+    		}
+    		
+    	}else if(isLock == 3 && showingAnswer)
+    	{
+    		text("WRONG", 520, 800);
+    		
+    		if(millis() - time >= 2000)
+    		{
+    			isLock = 1;
+    		}
     	}
     	
     	
@@ -105,14 +126,31 @@ public class LockerActivity extends PApplet{
     	
     	if(answerCorrect)
     	{
-    		isLock = false;
+    		isLock = 2;
+    		//time = millis();
+    		
+    		//render a no force profile
+    		server.sendMessage("63");
+    		
     	}else
     	{
-    		anserIter = 0;
+    		isLock = 3;
+    		//time = millis();
+    		
+    		//render a full-stop profile
+    		server.sendMessage("62");
     	}
     	
     	
+    }
+    
+    public void showAnswer()
+    {
+    	showingAnswer = true;
     	
+    	time = millis();
+    	
+    	anserIter = 0;
     }
     
     public void keyPressed() {

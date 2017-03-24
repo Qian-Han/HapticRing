@@ -116,20 +116,23 @@ diff_prev_val = []
 prev_val_ch1 = []
 running_ch1 = False
 r_count = 0
-running_threshold = 7.0
+running_threshold = 15.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
 reading_direction = 1
 predict_span = 200
 buffer_interval = 1000;
-running_mode = 2 # 1 -> reset  2-> no reset
+running_mode = 0 # 1 -> reset  2-> no reset
 mproxity_read = 0
 profile_end_angle = 180
 profile_start_angle = 20
 profile_end_alert = False
 
 demo_name = 'demo_name'
+
+motion_stop_time = 0
+motion_stop_wait = 1 #at least 1 sec
 
 #custom profile
 profile_data = []
@@ -163,8 +166,14 @@ def interprate(data):
         temp_angle = 0
         m_motor.set_custom_profile(cleaned_profile_data)
     elif len(profile_data) == 1:
-        #could be a command
-        m_motor.serial_port.write(profile_data[0])
+        
+        if profile_data[0] == '62':
+            m_motor.set_stop(total_angle)
+        elif profile_data[0] == '63':
+            m_motor.set_no_force()
+        else:
+            m_motor.serial_port.write(profile_data[0])
+
 
 
 def detect_running(val_list):
@@ -239,6 +248,8 @@ def add_value_ch0(serial_port, val):
 
     global order_set
     global order_itr
+
+    global motion_stop_time
     
     peak_list.append(val)
 
@@ -253,7 +264,7 @@ def add_value_ch0(serial_port, val):
         
         if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
-            if running == False:
+            if running == False and time.time() - motion_stop_time > motion_stop_wait:
                 running = True
                 print("start")
                 direction_test_timer = 0
@@ -304,7 +315,13 @@ def add_value_ch0(serial_port, val):
 
 
 
-                    running_clockwise = 1
+                    running_clockwise = order_set[order_itr]
+                    order_itr+=1
+
+
+                    if order_itr == 7:
+                        order_itr = 0
+                    
 
                     reading_direction = 0  #got direction info
                     #running_clockwise = 1  #make sure there is no direction
@@ -314,8 +331,13 @@ def add_value_ch0(serial_port, val):
                     running = False
                     reading_direction = 1 #waiting for diretion info
 
-
+                    motion_stop_time = time.time()
                     print("stop")
+
+                    #send to server
+                    main.sock.send((("%s, 1"%running_clockwise) + '\n'))
+
+                    print("sent: %s" % running_clockwise)
 
                     if total_angle >= profile_end_angle and running_mode == 1:
                         base_angle = 0
@@ -436,7 +458,7 @@ def add_value_ch0(serial_port, val):
                 print ("180 finished")
                 profile_end_alert = False
 
-        if demo_name == "locker" or demo_name == "authoring tool":
+        if demo_name == "authoring tool":
             if total_angle < pre_total_angle and total_angle >= 0:
                 m_motor.get_angle(pre_total_angle, mproxity_read)  
                 main.sock.send((("%s"%pre_total_angle) + '\n'))
@@ -464,7 +486,7 @@ def add_value_ch0(serial_port, val):
 
         if demo_name == "locker":
             main.sock.send((("%s"%total_angle) + '\n'))
-            #m_motor.get_angle(total_angle, mproxity_read)
+            m_motor.get_angle(total_angle, mproxity_read)
         #m_motor.get_angle(total_angle)
 
 def add_value_ch1(val):
@@ -554,15 +576,21 @@ def main():
 
     args = parser.parse_args()
 
-    if args.name == 'authoring':
+    if args.name == 'author':
         print("authoring tool")
         demo_name = "authoring tool"
+        running_mode = 1
+
     elif args.name == 'locker':
         print("locker")
         running_mode = 2
         demo_name = "locker"
 
-        order_set = [1, 1, 1, -1, -1, 1]
+        #correct
+        #order_set = [1, 1, 1, -1, -1, 1, -1]
+        #wrong
+        order_set = [1, 1, -1, -1, 1, 1, -1]
+
         order_itr = 0
 
     elif args.name == 'angrybird':
