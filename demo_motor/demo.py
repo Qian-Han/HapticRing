@@ -100,38 +100,30 @@ pre_total_angle = 0
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
-
 hard_peak = 580
 hard_valley = 420
-
 temp_peak = hard_peak
 temp_valley = hard_valley
-
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
-state_cut_ratio = 0.05
+state_cut_ratio = 0.001
 state_cut_up = 0
 state_cut_down = 0
 b_sensor_dir = 1 #1-increase 2-decrease
-
 #running and notrunning
 running = False
 prev_val = [] #5 frames
-prev_mid = 0
-close_to_top = 0
 diff_prev_val = []
-
 prev_val_ch1 = []
 running_ch1 = False
-
 r_count = 0
-running_threshold = 15.0
+running_threshold = 7.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
+direction_test_timer = 0
 reading_direction = 1
 predict_span = 200
 buffer_interval = 1000;
 running_mode = 2 # 1 -> reset  2-> no reset
-
 mproxity_read = 0
 profile_end_angle = 180
 profile_start_angle = 20
@@ -142,28 +134,6 @@ demo_name = 'demo_name'
 #custom profile
 profile_data = []
 cleaned_profile_data = []
-
-motion_count = 0
-motion_stop_time = 0
-motion_stop_wait = 1 #at least 1 sec
-
-
-dir_span = 25
-dir_using_channel = 0
-
-avg_val_0 = 0
-prev_avg_val_0 = 0
-smooth_dt = (1.0 / 800)
-smooth_RC = 0.05
-smooth_alpha = smooth_dt / (smooth_RC + smooth_dt)
-
-prev_val_ch1 = []
-running_ch1 = False
-avg_val_1 = 0
-prev_avg_val_1 = 0
-std_value_ch1 = 0
-
-
 
 def interprate(data):
     global profile_data
@@ -192,7 +162,6 @@ def interprate(data):
         pre_total_angle = 0
         temp_angle = 0
         m_motor.set_custom_profile(cleaned_profile_data)
-
     elif len(profile_data) == 1:
         #could be a command
         m_motor.serial_port.write(profile_data[0])
@@ -202,13 +171,11 @@ def detect_running(val_list):
     return np.std(val_list)
 
 def detect_moving_direction(val_list):
-    length = len(val_list)
-    if length > 2:
-        itr_dif  = val_list[-1] - val_list[0] 
-
-        if itr_dif > 3:
+    if running and len(val_list) > 2:
+        vt = val_list[-1] - val_list[0]
+        if vt > 0:
             return 1
-        elif itr_dif  < -3:
+        elif vt < 0:
             return -1
         else:
             return 0
@@ -223,25 +190,18 @@ def detect_state(val, up, down):
             st = 2
     return st
 
-
-
-
 def add_value_ch0(serial_port, val):
 
     global hard_valley
     global hard_peak
-    global avg_val_0
-    global prev_avg_val_0
 
-    avg_val_0 = (smooth_alpha * val) + (1.0 - smooth_alpha) * prev_avg_val_0
-    prev_avg_val_0 = avg_val_0
-
-    val = avg_val_0  #do the absolute peak and valley
-
+    if val > hard_peak:
+        val = hard_peak
+    if val < hard_valley:
+        val = hard_valley
 
     global avg
     global topanddown
-
     global base_angle
     global temp_angle
     global firstTopOrBottom
@@ -256,14 +216,12 @@ def add_value_ch0(serial_port, val):
     global state_cut_down
     global a_sensor_state
     global prev_val
-    global prev_mid
-    global close_to_top
-
     global prev_val_ch1
     global diff_prev_val
     global running
     global running_clockwise
     global reading_direction
+    global direction_test_timer
     global running_ch1
     global predict_span
     global r_count
@@ -272,11 +230,6 @@ def add_value_ch0(serial_port, val):
     global profile_start_angle
     global profile_end_alert
     global mproxity_read
-
-    global motion_count
-    global motion_stop_time
-
-    global dir_using_channel
 
     #study parameters
     global current_trial
@@ -293,219 +246,131 @@ def add_value_ch0(serial_port, val):
         peak_list.pop(0)
 
     prev_val.append(val)
-
     if len(prev_val) > predict_span: #200
 
         prev_val.pop(0)
         std_value = detect_running(prev_val)
         
-        if std_value > running_threshold:  # predict as running, a sensor or b sensor
+        if std_value > running_threshold or running_ch1 == True:  # predict as running, a sensor or b sensor
             #print("running")
-            if running == False and time.time() - motion_stop_time > motion_stop_wait:
+            if running == False:
                 running = True
-                
-                motion_count += 1
-                print("start %s" % motion_count)
+                print("start")
+                direction_test_timer = 0
 
-                #read the direction
-                if reading_direction == 1:
+            #wait for span/2 frames
+            #reading_direction must be 1
+            if direction_test_timer < predict_span / 2 and reading_direction == 1: #10
+                direction_test_timer += 1
+                if direction_test_timer == predict_span / 2:
+
                     if a_sensor_state == -1:
                         running_clockwise = 1
 
+                    elif a_sensor_state == 0:
+                        #see sensor 2
+                        dir_ch1 = detect_moving_direction(prev_val_ch1)
+
+                        if dir_ch1 == 1:
+                            running_clockwise = -1
+                        elif dir_ch1 == -1:
+                            running_clockwise = 1
 
                     elif a_sensor_state == 1:
-
+                        a_sensor_state = 1
                         #see sensor 1
-                        dir_ch0 = detect_moving_direction(prev_val[-dir_span:])
-                        dir_ch1 = detect_moving_direction(prev_val_ch1[-dir_span:])
+                        dir_ch0 = detect_moving_direction(prev_val)
 
-
-                        #prev_mid = (prev_val[-dir_span]  + prev_val[-1])/2 
-
-                        if prev_mid < state_cut_down:
-                            dir_using_channel = 1
-                            close_to_top = -1
-                        elif prev_mid > state_cut_up:
-                            dir_using_channel = 1
-                            close_to_top = 1
-                        else:
-                            dir_using_channel = 0
-
-                        #print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
-                        #print(prev_val[-dir_span:])
-                        #print(prev_val)if 
-
-                        if dir_using_channel == 0:
-
-                            if dir_ch0 == 1:
-                                running_clockwise = -1
-                            elif dir_ch0 == -1:
-                                running_clockwise = 1
-
-                            print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
-
-                        else:
-
-                            #pay special attention
-                            if close_to_top == 1:
-                                if dir_ch1 == 1:
-                                    running_clockwise = 1
-                                elif dir_ch1 == -1:
-                                    running_clockwise = -1
-                            elif close_to_top == -1:
-                                if dir_ch1 == 1:
-                                    running_clockwise = -1
-                                elif dir_ch1 == -1:
-                                    running_clockwise = 1
-
-                            print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
-                        
+                        if dir_ch0 == 1:
+                            running_clockwise = -1
+                            #topanddown = 1
+                        elif dir_ch0 == -1:
+                            running_clockwise = 1
 
 
                     elif a_sensor_state == 2:
                         #see sensor 2
-                        dir_ch0 = detect_moving_direction(prev_val[-dir_span:])
-                        dir_ch1 = detect_moving_direction(prev_val_ch1[-dir_span:])
+                        dir_ch1 = detect_moving_direction(prev_val_ch1)
 
-                        #prev_mid = (prev_val[-dir_span]  + prev_val[-1])/2 
+                        if dir_ch1 == 1:
+                            running_clockwise = 1
+                        elif dir_ch1 == -1:
+                            running_clockwise = -1
 
-                        if prev_mid < state_cut_down:
-                            dir_using_channel = 1
-                            close_to_top = -1
-                        elif prev_mid > state_cut_up:
-                            dir_using_channel = 1
-                            close_to_top = 1
-                        else:
-                            dir_using_channel = 0
-                        
-                        #print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
-                        #print(prev_val_ch1[-dir_span:])
-                        #print(prev_val_ch1)
+                    elif a_sensor_state == 3:
+                        a_sensor_state = 3
+                        #see sensor 1
+                        dir_ch0 = detect_moving_direction(prev_val)
 
-                        if dir_using_channel == 0:
-                            if dir_ch0 == 1:
-                                running_clockwise = 1
-                                    #a_sensor_state = 3
-                            elif dir_ch0 == -1:
-                                running_clockwise = -1
-                                    #a_sensor_state = 1
 
-                            print("state: %s, ch0 dir: %s"%(a_sensor_state, dir_ch0))
-                        else:  
-                            #pay special attention here
-                            if close_to_top == 1:
-                                if dir_ch1 == 1:
-                                    running_clockwise = 1
-                                        #a_sensor_state = 3
-                                elif dir_ch1 == -1:
-                                    running_clockwise = -1
-                                        #a_sensor_state = 1
-                            elif close_to_top == -1:
-                                if dir_ch1 == 1:
-                                    running_clockwise = -1
-                                        #a_sensor_state = 3
-                                elif dir_ch1 == -1:
-                                    running_clockwise = 1
-                                        #a_sensor_state = 1
-
-                            print("state: %s, ch1 dir: %s"%(a_sensor_state, dir_ch1))
-
-                    #running_clockwise = 1
-                    print("dir %s" % running_clockwise)
-
-                    #mock up
-                    running_clockwise = order_set[order_itr]
-                    order_itr+=1
-
-                    reading_direction = 0
-                
-
+                    reading_direction = 0  #got direction info
+                    #running_clockwise = 1  #make sure there is no direction
         else:
-            if running == True:
-                print("stop")
-                print("")
-                motion_stop_time = time.time()
-
-                running = False
-                reading_direction = 1 #waiting for diretion info
-
-                prev_mid = val
+            if running_ch1 == False:
+                if running == True:
+                    running = False
+                    reading_direction = 1 #waiting for diretion info
 
 
-                #think about it... do we need it?
-                if total_angle >= profile_end_angle and running_mode == 1:
-                    base_angle = 0
-                    temp_angle = 0
-                    total_angle = 0
-                    pre_total_angle = 0
+                    print("stop")
 
-                m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
+                    if total_angle >= profile_end_angle and running_mode == 1:
+                        base_angle = 0
+                        temp_angle = 0
+                        total_angle = 0
+                        pre_total_angle = 0
 
-            else:
-                #regular check
-                if std_value < 0.1:
-                    #print("check valid")
-                    prev_mid = val
+                    m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
+
                     
 
     if topanddown == 1:
-
-        #use another method
-        filter_peaks = detect_peaks(peak_list, mph=hard_peak, mpd=20, threshold=0, edge='falling',
-                 kpsh=False, valley=False, show=False, ax=None)
-
-        if len(filter_peaks)>0:
-            temp_peak = peak_list[filter_peaks[-1]]
+        if val==hard_peak:
+            temp_peak = hard_peak
             
             del peak_list[:]
-            topanddown = -1
+            topanddown = 2
 
             #angle cal
             if firstTopOrBottom:
-
-                #print("first top")
                 base_angle = 0
                 temp_angle = 0
                 firstTopOrBottom = False
                 reachingPeak = True
-                a_sensor_state = 1
-                #initial closewise, see sensor 2
-                """
-                dir_ch1 = detectMovingDirection(prev_val_ch1)
-                if dir_ch1 == 1:
-                    running_clockwise = -1
-                elif dir_ch1 == -1:
-                    running_clockwise = 1
-                """
+                a_sensor_state = 0
 
             else:
-
                 base_angle += (20*running_clockwise)
-
                 temp_angle = 0
                 reachingPeak = True
                 state_cut_up = temp_peak - (temp_peak - temp_valley) * state_cut_ratio
 
+            if reading_direction == 0:
+                a_sensor_state = 0
+
+    elif topanddown == 2:  #detect the second top
+        filter_peaks = detect_peaks(peak_list, mph=hard_peak-1, mpd=20, threshold=0, edge='falling',
+                 kpsh=False, valley=False, show=False, ax=None)
+    
+        if len(filter_peaks)>0:  #found a peak
+            del peak_list[:]
+            topanddown = -1
+
             goingup = False
+            reachingPeak = False
 
-            #if reading_direction == 0:
-            if running_clockwise == 1:
-                a_sensor_state = 1
-            else:
-                a_sensor_state = 2
-
-            #print("sensor_state: %s" % a_sensor_state)
-
+            if reading_direction == 0:
+                if running_clockwise == 1:
+                    a_sensor_state = 1
+                elif running_clockwise == -1:
+                    a_sensor_state = 3
 
     elif topanddown == -1:
-        filter_valleys = detect_peaks(peak_list, mph=-hard_valley-1, mpd=20, threshold=0, edge='falling',
-                 kpsh=False, valley=True, show=False, ax=None)
-        if len(filter_valleys)>0:
-
-            temp_valley = peak_list[filter_valleys[-1]]
+        if val == hard_valley:
+            temp_valley = hard_valley
             
             del peak_list[:]
-            topanddown = 1
+            topanddown = -2
 
             if firstTopOrBottom:
                 base_angle = 0
@@ -513,7 +378,6 @@ def add_value_ch0(serial_port, val):
                 firstTopOrBottom = False
                 reachingPeak = True
                 a_sensor_state = 2
-                #initial closewise, see sensor 2
 
             else:
                 base_angle += (20*running_clockwise)
@@ -521,28 +385,37 @@ def add_value_ch0(serial_port, val):
                 reachingPeak = True
                 state_cut_down = temp_valley + (temp_peak - temp_valley) * state_cut_ratio
 
-            goingup = True
-
-            #if reading_direction == 0:
-            if running_clockwise == 1:
+            if reading_direction == 0:
                 a_sensor_state = 2
-            else:
-                a_sensor_state = 1
 
-            #print("sensor_state: %s" % a_sensor_state)
 
-    
+    elif topanddown == -2:
+        filter_valleys = detect_peaks(peak_list, mph=-hard_valley-1, mpd=20, threshold=0, edge='falling',
+                 kpsh=False, valley=True, show=False, ax=None)
+
+        if len(filter_valleys)>0:  #found a valley
+            del peak_list[:]
+            topanddown = 1
+            goingup = True
+            reachingPeak = False
+
+            if reading_direction == 0:
+                if running_clockwise == 1:
+                    a_sensor_state = 3
+                elif running_clockwise == -1:
+                    a_sensor_state = 1
+
     
     #determing temp angle between peak and valley
-    
-    if temp_peak*temp_valley != 0:
-        if goingup:
-            temp_angle = abs(val - temp_valley) * 20 / abs(temp_peak - temp_valley)
-        else:
-            temp_angle = abs(val - temp_peak) * 20 / abs(temp_peak - temp_valley)
+    if reachingPeak ==  False:
+        if temp_peak*temp_valley != 0:
+            if goingup:
+                temp_angle = abs(val - temp_valley) * 20 / abs(temp_peak - temp_valley)
+            else:
+                temp_angle = abs(val - temp_peak) * 20 / abs(temp_peak - temp_valley)
 
-        if running == False:
-                offset_angle = temp_angle
+            if running == False:
+                    offset_angle = temp_angle
 
     
 
@@ -560,13 +433,13 @@ def add_value_ch0(serial_port, val):
                 print ("180 finished")
                 profile_end_alert = False
 
-        if demo_name == "authoring tool":
+        if demo_name == "locker" or demo_name == "authoring tool":
             if total_angle < pre_total_angle and total_angle >= 0:
                 m_motor.get_angle(pre_total_angle, mproxity_read)  
-                #main.sock.send((("%s"%pre_total_angle) + '\n'))
+                main.sock.send((("%s"%pre_total_angle) + '\n'))
             else:
                 m_motor.get_angle(total_angle, mproxity_read)
-                #main.sock.send((("%s"%total_angle) + '\n'))
+                main.sock.send((("%s"%total_angle) + '\n'))
 
                 pre_total_angle = total_angle 
 
@@ -588,13 +461,8 @@ def add_value_ch0(serial_port, val):
 
         if demo_name == "locker":
             main.sock.send((("%s"%total_angle) + '\n'))
-            m_motor.get_angle(pre_total_angle, mproxity_read)  
             #m_motor.get_angle(total_angle, mproxity_read)
         #m_motor.get_angle(total_angle)
-
-
-
-
 
 def add_value_ch1(val):
     global prev_val_ch1
@@ -602,15 +470,7 @@ def add_value_ch1(val):
     global predict_span
     global running_threshold
 
-    global avg_val_1
-    global prev_avg_val_1
-    global std_value_ch1
-
-    avg_val_1 = (smooth_alpha * val) + (1.0 - smooth_alpha) * prev_avg_val_1
-    prev_avg_val_1 = avg_val_1
-
-    prev_val_ch1.append(avg_val_1)
-
+    prev_val_ch1.append(val)
     if len(prev_val_ch1) > predict_span:
         prev_val_ch1.pop(0)
 
@@ -622,8 +482,6 @@ def add_value_ch1(val):
         else:
             if running_ch1 == True:
                 running_ch1 = False
-
-
 
 def serial_read():
     global buffer_interval
@@ -695,7 +553,6 @@ def main():
     if args.name == 'authoring':
         print("authoring tool")
         demo_name = "authoring tool"
-        running_mode = 1
     elif args.name == 'locker':
         print("locker")
         running_mode = 2
@@ -710,7 +567,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.41.64', 9090))
+    main.sock.connect(('10.31.46.84', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)
