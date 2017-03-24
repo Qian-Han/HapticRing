@@ -506,6 +506,11 @@ def add_value_ch0(serial_port, val):
             m_motor.get_angle(total_angle, mproxity_read)
         #m_motor.get_angle(total_angle)
 
+        elif demo_name == "angry bird": 
+
+            m_motor.get_angle(total_angle, mproxity_read)
+
+
 def add_value_ch1(val):
     global prev_val_ch1
     global running_ch1
@@ -610,6 +615,7 @@ def main():
 
     elif args.name == 'angrybird':
         print("angry bird")
+        running_mode = 2
         demo_name = "angry bird"
 
     elif args.name == 'timer':

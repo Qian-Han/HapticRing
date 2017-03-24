@@ -119,7 +119,7 @@ public class TimerActivity extends PApplet{
     	}
     	
     	
-    	delay(10);
+    	delay(1000);
     	
     	
     }
@@ -130,12 +130,17 @@ public class TimerActivity extends PApplet{
     	    exit();
     	}else if(key == 'e' || key == 'x')
     	{
-    		//server.sendMessage("" + key);
+    		server.sendMessage("" + key);
     	}else if(key == 'a')
     	{
     		hours = 0;
     		mins = 15;
     		seconds = 15;
+    	}else if(key == 'b')
+    	{
+    		hours = 0;
+    		mins = 0;
+    		seconds = 10;
     	}
     }
 	

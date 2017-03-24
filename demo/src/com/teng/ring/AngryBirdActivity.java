@@ -8,9 +8,14 @@ package com.teng.ring;
  */
 
 import java.awt.AWTException;
+import java.awt.Cursor;
+import java.awt.Point;
 import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel; 
@@ -18,7 +23,8 @@ import javax.swing.JPanel;
 public class AngryBirdActivity extends JPanel{
 
 	public Robot robot = new Robot();
-	private String acitivtyTag = "angrybird";
+	private String activityTag = "angrybird";
+	private Server server;
 	
 	public static void main(String[] args) throws AWTException
 	{
@@ -28,6 +34,12 @@ public class AngryBirdActivity extends JPanel{
 	    frame.setSize(200, 200);
 	    frame.setVisible(true);
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    
+	    BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+	    Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(
+	    	    cursorImg, new Point(0, 0), "blank cursor");
+	    
+	    frame.getContentPane().setCursor(blankCursor);
 	}
 	
 	public static AngryBirdActivity instance;
@@ -47,6 +59,9 @@ public class AngryBirdActivity extends JPanel{
 	
 	public AngryBirdActivity() throws AWTException
 	{
+		
+		instance = this;
+		
 		robot.setAutoDelay(40);
 	    robot.setAutoWaitForIdle(true);
 	    
@@ -56,9 +71,51 @@ public class AngryBirdActivity extends JPanel{
 	    
 	    
 	    //server
-	    
+	    try {
+			server = new Server(activityTag);
+			System.out.println(server.getIpAddress());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	  
+	
+
+	public void mouseReset()
+	{
+		//continue the game
+		robot.mouseMove(200, 310);
+		robot.delay(100);
+		robot.mousePress(InputEvent.BUTTON1_MASK);
+		robot.delay(100);
+		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+		robot.delay(100);
+		
+		robot.mousePress(InputEvent.BUTTON1_MASK);
+		robot.delay(100);
+		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+		robot.delay(100);
+		
+		
+		//move the game view to left
+		robot.mousePress(InputEvent.BUTTON1_MASK);
+		robot.delay(100);
+		robot.mouseMove(800, 610);
+		robot.delay(1000);
+		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+		robot.delay(1000);
+		
+		
+		//set the cursor to start position
+		robot.mouseMove(450, 625);
+		robot.delay(1000);
+		robot.mousePress(InputEvent.BUTTON1_MASK);
+		robot.delay(2000);
+		robot.mouseMove(420, 625);
+		robot.delay(1000);
+	}
+	
 	public void mousePress()
 	{
 	    robot.mousePress(InputEvent.BUTTON1_MASK);

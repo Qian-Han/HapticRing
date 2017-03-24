@@ -1,5 +1,6 @@
 package com.teng.ring;
 
+import java.awt.event.InputEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -74,6 +75,13 @@ public class Server {
 				//SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread();
             	//socketServerReplyThread.run();
             	
+				
+				if(activityTag == "angrybird")
+				{
+					AngryBirdActivity.getInstance().mouseReset();
+				}
+				
+				
             	//keep listening
             	if(activityTag == "angrybird" || activityTag == "locker")
             	{
