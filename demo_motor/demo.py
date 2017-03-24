@@ -283,6 +283,9 @@ def add_value_ch0(serial_port, val):
     global block
     global profile_index
     global user_action_count
+
+    global order_set
+    global order_itr
     
     peak_list.append(val)
 
@@ -409,6 +412,10 @@ def add_value_ch0(serial_port, val):
 
                     #running_clockwise = 1
                     print("dir %s" % running_clockwise)
+
+                    #mock up
+                    running_clockwise = order_set[order_itr]
+                    order_itr+=1
 
                     reading_direction = 0
                 
@@ -671,10 +678,14 @@ def ir_read():
 #############################################################################################
 
 
+order_set = []
+order_itr = 0
+
 
 def main():
     global demo_name
     global running_mode
+    global order_set
 
     parser = argparse.ArgumentParser(description='demo --name string')
     parser.add_argument('--name', action='store', dest='name', default='locker', help='name to execute')
@@ -689,6 +700,10 @@ def main():
         print("locker")
         running_mode = 2
         demo_name = "locker"
+
+        order_set = [1, 1, 1, -1, -1, 1]
+        order_itr = 0
+
     elif args.name == 'angrybird':
         print("angry bird")
         demo_name = "angry bird"

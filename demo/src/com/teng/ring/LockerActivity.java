@@ -13,7 +13,14 @@ public class LockerActivity extends PApplet{
 	private PImage locker;
 	private PImage rotator;
 	public float rotateAngle = 0.0f;
+	public int rotateDirection = 1;
 	private Server server;
+	
+	public boolean isLock = true;
+	public int[] password = {1, 1, 1, -1, -1, 1};
+	public int[] userAnswer;
+	public int anserIter = 0;
+	
 	
 	public static LockerActivity instance;
 	public static LockerActivity getInstance()
@@ -27,7 +34,9 @@ public class LockerActivity extends PApplet{
 	
 	public void settings(){
 		print("hello\n");
-		size(1280,800);
+		//size(1280,800);  //1280, 800
+		fullScreen();  // 1440, 900
+		
     }
 
     public void setup(){
@@ -37,6 +46,7 @@ public class LockerActivity extends PApplet{
     	locker = loadImage("locker_outer.png");
     	rotator = loadImage("locker_inner.png");
     	
+    	userAnswer = new int[6];
     	
     	try {
 			server = new Server(activityTag);
@@ -51,15 +61,58 @@ public class LockerActivity extends PApplet{
     {
     	background(255);
     	
-    	//rotateAngle += 0.01f;
+    	//rotateAngle += 1f;
     	
     	pushMatrix();
-    	translate(width/2, height/2 + 60);
+    	translate(width/2, height/2 + 10);
     	rotate(rotateAngle * PI / 180 );
-    	image(rotator, -17.16f, -79.56f, 28.6f, 132.6f);
+    	image(rotator, -17.16f, -79.56f, 34.32f, 159.12f);
     	popMatrix();
     	
-    	image(locker, 480, 180, 320, 440);
+    	image(locker, 560, 180, 320, 440);
+    	
+    	textSize(122);
+    	fill(100);
+    	
+    	if(isLock)
+    	{
+    		text("LOCK", 580, 800);
+    	}else
+    	{
+    		text("UNLOCK", 500, 800);
+    		
+    		//do something
+    		
+    	}
+    	
+    	
+    	
+    }
+    
+    public void checkAnswer()
+    {
+    	boolean answerCorrect = true;
+    	for(int itr = 0; itr < 6; itr++)
+    	{
+    		if(userAnswer[itr] == password[itr])
+    		{
+    			
+    		}else
+    		{
+    			answerCorrect = false;
+    		}
+    	}
+    	
+    	if(answerCorrect)
+    	{
+    		isLock = false;
+    	}else
+    	{
+    		anserIter = 0;
+    	}
+    	
+    	
+    	
     }
     
     public void keyPressed() {

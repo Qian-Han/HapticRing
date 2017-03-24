@@ -180,13 +180,28 @@ public class Server {
 						//values
 						if(values.length == 1)
 						{
+							LockerActivity.getInstance().rotateAngle = Float.valueOf(values[0]);
+						}else if(values.length == 2)
+						{
+							LockerActivity.getInstance().userAnswer[LockerActivity.getInstance().anserIter] = Integer.valueOf(values[0]);
+							LockerActivity.getInstance().anserIter++;
 							
-						}else
+							if(LockerActivity.getInstance().anserIter == 6)
+							{
+								//should check 
+								LockerActivity.getInstance().checkAnswer();
+								
+							}
+						}
+						else
 						{
 							continue;
 						}
 						
-						LockerActivity.getInstance().rotateAngle = Float.valueOf(values[0]);
+						
+						
+						
+						
 						
 					}
 					
