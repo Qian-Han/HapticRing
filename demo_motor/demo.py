@@ -360,9 +360,9 @@ def add_value_ch0(serial_port, val):
                         running_clockwise = order_set[order_itr]
                         print("direction: %s" % running_clockwise)
                         
-                        if order_itr == 7
-                            main.sock.send(("3, 1"%) + '\n'))
-                            print("sent: %s" % play_state_set[order_itr])
+                        if order_itr == 7:
+                            main.sock.send(("3, 1") + '\n')
+                            print("sent: 3")
 
                         order_itr += 1
 
@@ -395,10 +395,10 @@ def add_value_ch0(serial_port, val):
                             pre_total_angle = 0
 
                             
-                            main.sock.send(("2, 1"%) + '\n'))
-                            print("sent: %s" % play_state_set[order_itr])
+                            main.sock.send(("2, 1") + '\n')
+                            print("sent: 2")
 
-                            m_motor.set_angry_spring()
+                            #m_motor.set_angry_spring()
 
 
                     if total_angle >= profile_end_angle and running_mode == 1:
@@ -579,6 +579,8 @@ def add_value_ch0(serial_port, val):
                 m_motor.get_angle(pre_total_angle, mproxity_read)
 
         elif demo_name == "angry bird": 
+
+            print(total_angle)
 
             if running_clockwise == 1:
                 if total_angle >= pre_total_angle and total_angle >= 0:

@@ -34,7 +34,7 @@ public class AngryBirdActivity extends JPanel{
 	private int preXPos = 0;
 	private int preYPos = 0;
 	private float angleLimit = 180;
-	private float posLimit = 50;
+	private float posLimit = 100;
 	
 	public static void main(String[] args) throws AWTException
 	{
@@ -108,6 +108,7 @@ public class AngryBirdActivity extends JPanel{
 		robot.delay(100);
 		
 		
+		/*
 		//move the game view to left
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.delay(100);
@@ -125,6 +126,10 @@ public class AngryBirdActivity extends JPanel{
 		robot.mouseMove(420, 625);
 		robot.delay(1000);
 		
+		*/
+		
+		
+		robot.mouseMove(420, 625);
 		baseXPos = 420;
 		baseYPos = 625;
 		
