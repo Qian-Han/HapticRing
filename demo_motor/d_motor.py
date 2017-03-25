@@ -166,6 +166,12 @@ class motor(Thread):
 		self.profile_step = 0
 		print("73 - stop")
 
+	def set_angry_spring(self):
+		self.trigger_state = 10  #to reset
+		self.target_state = 81
+		self.is_ready = 0
+		self.profile_step = 0
+		print("81 - spring")
 
 
 	def set_profile(self, prof):
@@ -492,6 +498,29 @@ class motor(Thread):
 					self.profile_step = 1
 					for i in range(0,5):
 						self.serial_port.write("c") 
+
+			elif self.trigger_state == 81: #spring and antispring
+				if abs(val) > self.action_start and abs(val) < self.action_end:
+					val_interval = abs(val) - abs(self.val)
+
+					if val_interval >=3.00:
+						step_interval = (int)(abs(val_interval) / 3.00)
+						#print(step_interval)
+						for x in range(0, step_interval):
+							self.serial_port.write("m")  #step down
+
+						self.val = self.val + step_interval * 3.00
+
+					elif val_interval <= -3.00:
+						step_interval = (int)(abs(val_interval) / 3.0)
+						#print(step_interval)
+						for x in range(0, step_interval):
+							self.serial_port.write("p")  #step down
+
+						self.val = self.val - step_interval * 3.0
+
+				else:
+					self.val = self.action_start - 2
 
 
 
