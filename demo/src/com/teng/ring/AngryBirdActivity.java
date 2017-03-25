@@ -132,6 +132,10 @@ public class AngryBirdActivity extends JPanel{
 		robot.mouseMove(420, 625);
 		baseXPos = 420;
 		baseYPos = 625;
+		xPos = baseXPos;
+		yPos = baseYPos;
+		preXPos = xPos;
+		preYPos = yPos;
 		
 		isReadyToGo = true;
 	}
@@ -147,11 +151,11 @@ public class AngryBirdActivity extends JPanel{
 				yPos = baseYPos + (int)(angle * posLimit / angleLimit);
 			}
 			
-			if(preYPos != yPos){
+			if(Math.abs(yPos - preYPos) >= 5){
 				robot.mouseMove(xPos, yPos);
+				preYPos = yPos;
 			}
 			
-			preYPos = yPos;
 			
 		}else if(playState == 2)
 		{
@@ -161,11 +165,10 @@ public class AngryBirdActivity extends JPanel{
 				xPos = baseXPos + (int)(angle * posLimit / angleLimit);
 			}
 			
-			if(preXPos != xPos){
+			if(Math.abs(xPos - preXPos) >= 5){
 				robot.mouseMove(xPos, yPos);
+				preXPos = xPos;
 			}
-			
-			preXPos = xPos;
 			
 			
 		}else if(playState == 3)
