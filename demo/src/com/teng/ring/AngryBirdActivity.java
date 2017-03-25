@@ -25,6 +25,16 @@ public class AngryBirdActivity extends JPanel{
 	public Robot robot = new Robot();
 	private String activityTag = "angrybird";
 	private Server server;
+	public boolean isReadyToGo = false;
+	public int playState = 1; // 1 - up and down, 2 - left and right  3 - release
+	private int baseXPos = 0;
+	private int baseYPos = 0;
+	private int xPos = 0;
+	private int yPos = 0;
+	private int preXPos = 0;
+	private int preYPos = 0;
+	private float angleLimit = 180;
+	private float posLimit = 50;
 	
 	public static void main(String[] args) throws AWTException
 	{
@@ -114,7 +124,54 @@ public class AngryBirdActivity extends JPanel{
 		robot.delay(2000);
 		robot.mouseMove(420, 625);
 		robot.delay(1000);
+		
+		baseXPos = 420;
+		baseYPos = 625;
+		
+		isReadyToGo = true;
 	}
+	
+	public void toPosition(float angle) //what about 180 degree to 50 on screen
+	{
+		
+		if(playState == 1)
+		{
+			//translate to up and down,  mouse is pressed
+			if(Math.abs(angle) < angleLimit)
+			{
+				yPos = baseYPos + (int)(angle * posLimit / angleLimit);
+			}
+			
+			if(preYPos != yPos){
+				robot.mouseMove(xPos, yPos);
+			}
+			
+			preYPos = yPos;
+			
+		}else if(playState == 2)
+		{
+			//translate to left and right, mouse is pressed
+			if(Math.abs(angle) < angleLimit)
+			{
+				xPos = baseXPos + (int)(angle * posLimit / angleLimit);
+			}
+			
+			if(preXPos != xPos){
+				robot.mouseMove(xPos, yPos);
+			}
+			
+			preXPos = xPos;
+			
+			
+		}else if(playState == 3)
+		{
+			//release, release the mouse
+			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+		}
+		
+
+	}
+	
 	
 	public void mousePress()
 	{
@@ -130,4 +187,6 @@ public class AngryBirdActivity extends JPanel{
 	{
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 	}
+	
+	
 }

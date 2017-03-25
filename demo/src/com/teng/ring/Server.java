@@ -1,5 +1,6 @@
 package com.teng.ring;
 
+import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -209,12 +210,25 @@ public class Server {
 							continue;
 						}
 						
-						
-						
-						
-						
-						
+					}else if(activityTag == "angrybird")
+					{
+						if(AngryBirdActivity.getInstance().isReadyToGo == true)
+						{
+							if(values.length == 1)
+							{
+								//get angle
+								AngryBirdActivity.getInstance().toPosition(Float.valueOf(values[0]));
+							}else if(values.length == 2)
+							{
+								AngryBirdActivity.getInstance().playState = Integer.valueOf(values[0]);
+							}
+							else
+							{
+								continue;
+							}
+						}
 					}
+					
 					
 					
 					/*
@@ -261,6 +275,7 @@ public class Server {
 		}
 	}
 	
+	
 	public String getIpAddress() {
         String ip = "get ip address ";
         try {
@@ -291,5 +306,7 @@ public class Server {
         }
         return ip;
     }
+	
+	
 	
 }
