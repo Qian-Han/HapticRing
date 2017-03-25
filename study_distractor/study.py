@@ -489,7 +489,8 @@ def AddValue_Ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14121', baudrate=115200)
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -520,7 +521,8 @@ def SetIRValue(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
@@ -563,11 +565,11 @@ def main():
 
     
 
-    is_training = False
+    is_training = True
 
-    train_trials = [4,3]
+    train_trials = [1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6]
     if is_training:
-        total_trials = 2
+        total_trials = 54
 
     #take user input
     while True:

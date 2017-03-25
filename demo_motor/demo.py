@@ -100,8 +100,12 @@ pre_total_angle = 0
 firstTopOrBottom = True
 goingup = True
 reachingPeak = False
-hard_peak = 580
-hard_valley = 420
+#  new prototype
+hard_peak = 650
+hard_valley = 390
+# old prototype
+# hard_peak = 580
+# hard_valley = 420
 temp_peak = hard_peak
 temp_valley = hard_valley
 a_sensor_state = -1 #0-state, 1-state, 2-state, 3-state
@@ -116,7 +120,7 @@ diff_prev_val = []
 prev_val_ch1 = []
 running_ch1 = False
 r_count = 0
-running_threshold = 15.0
+running_threshold = 25.0
 #moving direction
 running_clockwise = 1  #1->yes  -1->no 
 direction_test_timer = 0
@@ -142,8 +146,10 @@ def interprate(data):
     global profile_data
     global cleaned_profile_data
     global total_angle
+    global pre_total_angle
     global base_angle
     global temp_angle
+    global order_itr
 
     del profile_data[:]
     del cleaned_profile_data[:]
@@ -182,6 +188,17 @@ def interprate(data):
             base_angle = 0
             pre_total_angle = 0
             temp_angle = 0
+
+            time.sleep(1)
+            m_motor.set_timer_stop()
+        elif profile_data[0] == 'r':
+            order_itr = 0
+            total_angle = 0
+            base_angle = 0
+            pre_total_angle = 0
+            temp_angle = 0
+
+            time.sleep(1)
             m_motor.set_timer_stop()
         else:
             m_motor.serial_port.write(profile_data[0])
@@ -328,6 +345,8 @@ def add_value_ch0(serial_port, val):
 
                     if demo_name == "locker":
                         running_clockwise = order_set[order_itr]
+
+                        print(order_itr)
                         order_itr+=1
 
                         if order_itr == 7:
@@ -499,12 +518,36 @@ def add_value_ch0(serial_port, val):
             #temp_angle = 0
 
         if demo_name == "locker":
-            main.sock.send((("%s"%total_angle) + '\n'))
-            m_motor.get_angle(total_angle, mproxity_read)
+            if running_clockwise == 1:
+                if total_angle > pre_total_angle and total_angle >= 0:
+                    main.sock.send((("%s"%total_angle) + '\n'))
+                    m_motor.get_angle(total_angle, mproxity_read)
+
+                    pre_total_angle = total_angle
+
+                else:
+                    m_motor.get_angle(pre_total_angle, mproxity_read)
+                    main.sock.send((("%s"%total_angle) + '\n'))
+
+            elif running_clockwise == -1:
+                if total_angle < pre_total_angle and total_angle >= 0:
+                    main.sock.send((("%s"%total_angle) + '\n'))
+                    m_motor.get_angle(total_angle, mproxity_read)
+                    pre_total_angle = total_angle
+                else:
+                    m_motor.get_angle(pre_total_angle, mproxity_read)
+                    main.sock.send((("%s"%total_angle) + '\n'))
 
         elif demo_name == "timer":
-            m_motor.get_angle(total_angle, mproxity_read)
-        #m_motor.get_angle(total_angle)
+            #m_motor.get_angle(total_angle, mproxity_read)
+            #print(total_angle)
+            if total_angle >= pre_total_angle and total_angle >= 0:
+                m_motor.get_angle(total_angle, mproxity_read)
+
+                pre_total_angle = total_angle
+
+            else:
+                m_motor.get_angle(pre_total_angle, mproxity_read)
 
         elif demo_name == "angry bird": 
 
@@ -533,7 +576,9 @@ def add_value_ch1(val):
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14121', baudrate=115200)
+    # old prototype
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
 
     try:
         while getattr(t, "do_run", True):   
@@ -564,11 +609,13 @@ def set_ir_value(val):
 
 def ir_read():
     ir = threading.currentThread()
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
+    # old prototype
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem14131', baudrate=115200)
     try:
         while getattr(ir, "do_run", True):
             read_val = serial_port.readline()
-            #print("ir : %s"%read_val)
+            # print("ir : %s"%read_val)
             set_ir_value(int(read_val))
     except ValueError:
 
@@ -605,8 +652,11 @@ def main():
 
     elif args.name == 'locker':
         print("locker")
-        running_mode = 2
+        running_mode = 2 
         demo_name = "locker"
+
+        #test
+        #order_set = [1, 1, 1, 1, 1, 1, 1]
         #correct
         #order_set = [1, 1, 1, -1, -1, 1, -1]
         #wrong

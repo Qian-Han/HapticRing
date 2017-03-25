@@ -77,6 +77,8 @@ public class LockerActivity extends PApplet{
     	textSize(122);
     	fill(100);
     	
+    	
+    	
     	if(isLock == 1)
     	{
     		text("LOCK", 580, 800);
@@ -105,6 +107,8 @@ public class LockerActivity extends PApplet{
     			isLock = 1;
     		}
     	}
+    	
+    	
     	
     	
     	
@@ -157,9 +161,11 @@ public class LockerActivity extends PApplet{
     	if (key == 'q') {
     		//server.onDestroy();
     	    exit();
-    	}else if(key == 'e' || key == 'x')
+    	}else if(key == 'e' || key == 'x' || key == 'r')
     	{
     		server.sendMessage("" + key);
+    		
+    		anserIter = 0;
     	}
     }
 	

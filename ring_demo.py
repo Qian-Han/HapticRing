@@ -682,8 +682,8 @@ buffer_interval = 1000;
 def serial_read():
     global buffer_interval
     t = threading.currentThread()
-
-    serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14121', baudrate=115200)
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem1411', baudrate=115200)
     
     sx = 0
     try:
@@ -728,8 +728,8 @@ def SetIRValue(val):
 
 def ir_read():
     ir = threading.currentThread()
-
-    serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
+    serial_port = serial.Serial(port='/dev/tty.usbmodem14121', baudrate=115200)
+    # serial_port = serial.Serial(port='/dev/tty.usbmodem14241', baudrate=115200)
 
     try:
         while getattr(ir, "do_run", True):

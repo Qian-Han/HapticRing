@@ -8,7 +8,8 @@ class motor(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
+		# self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
 
 		self.trigger_state = 0
 		self.target_state = 0
@@ -22,10 +23,15 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 
-		self.pthreshold_up = 670  #950
-		self.pthreshold_down = 650   #940
+		self.pthreshold_up = 950  #950
+		self.pthreshold_down = 945   #940
 
-		self.pthreshold_low = 520 #833
+		self.pthreshold_low = 945 #833
+
+		# self.pthreshold_up = 670  #950
+		# self.pthreshold_down = 650   #940
+
+		# self.pthreshold_low = 520 #833
 
 		self.action_start = 20 #20 degree
 		self.action_end =  180  #300 degree
@@ -209,7 +215,7 @@ class motor(Thread):
 						if is_recording:
 							storage.add_sample(time.time(), val, pval, 4, 0, 0, 0, 0, 0, 0, 0, 0)
 
-						for i in range(0,3):
+						for i in range(0,5):
 							self.serial_port.write("c")
 						# self.serial_port.write("z")
 
@@ -298,7 +304,7 @@ class motor(Thread):
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 41, 0, 0, 0, 0, 0, 0, 0, 0)
 								#print("going down")
-								for i in range(0,2):
+								for i in range(0,4):
 									self.serial_port.write("c")
 								self.serial_port.write("z")
 
@@ -311,7 +317,7 @@ class motor(Thread):
 								self.profile_step = 1
 								if is_recording:
 									storage.add_sample(time.time(), val, pval, 42, 0, 0, 0, 0, 0, 0, 0, 0)
-								for i in range(0,2):
+								for i in range(0,4):
 									self.serial_port.write("e")
 								self.serial_port.write("q")
 

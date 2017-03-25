@@ -71,28 +71,6 @@ public class TimerActivity extends PApplet{
         	text("" + seconds, 760, 520);
     	}
     	
-    
-    	
-    	
-    	
-    	if(isLate == false)
-    	{
-    		seconds--;
-        	if(seconds == -1)
-        	{
-        		seconds = 59;
-        		mins--;
-        		
-        		if(mins == -1)
-        		{
-        			mins = 59;
-        			hours--;
-        			
-        		}
-        	}
-    	}
-    	
-    	
     	
     	if(hours == 0 && mins == 15 && seconds == 0)
     	{
@@ -117,6 +95,30 @@ public class TimerActivity extends PApplet{
     		}
     		
     	}
+    	
+    
+    	
+    	
+    	
+    	if(isLate == false)
+    	{
+    		seconds--;
+        	if(seconds == -1)
+        	{
+        		seconds = 59;
+        		mins--;
+        		
+        		if(mins == -1)
+        		{
+        			mins = 59;
+        			hours--;
+        			
+        		}
+        	}
+    	}
+    	
+    	
+    	
     	
     	
     	delay(1000);

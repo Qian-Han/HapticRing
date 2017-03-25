@@ -7,8 +7,9 @@ class motor(Thread):
 	
 	def __init__(self):
 		Thread.__init__(self)
-
-		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
+		self.serial_port = serial.Serial(port='/dev/tty.usbmodem14141', baudrate=115200)
+		# # old prototype
+		# self.serial_port = serial.Serial(port='/dev/tty.usbmodem14111', baudrate=115200)
 
 		self.trigger_state = 0
 		self.target_state = 0
@@ -21,11 +22,17 @@ class motor(Thread):
 		self.is_ready = 0
 		self.step_count = 0
 		self.motor_moving = 0
+		# new prototype
+		self.pthreshold_up = 950
+		self.pthreshold_down = 890
 
-		self.pthreshold_up = 670
-		self.pthreshold_down = 650
+		self.pthreshold_low = 890
 
-		self.pthreshold_low = 520
+		# old prototype
+		# self.pthreshold_up = 670
+		# self.pthreshold_down = 650
+
+		# self.pthreshold_low = 520
 
 		self.action_start = 20 #20 degree
 		self.action_end =  180  #300 degree
@@ -208,7 +215,7 @@ class motor(Thread):
 					else:
 						self.trigger_state = 11
 					self.serial_port.write("s")
-					# print("reset moving up done")
+					#print("reset moving up done")
 					self.motor_moving = 0
 
 				elif pval > self.pthreshold_down and pval < self.pthreshold_up:
@@ -228,7 +235,7 @@ class motor(Thread):
 
 				elif pval < self.pthreshold_low:
 					self.trigger_state = self.target_state
-					# print("reset moving down done")
+					#print("reset moving down done")
 					if self.trigger_state == 1:
 						# print("dong le")
 						self.serial_port.write("e")
@@ -430,7 +437,7 @@ class motor(Thread):
 							self.reset(7)
 
 			elif self.trigger_state == 61:  #locker bumps
-				if val >= self.action_start and val <= (self.action_end - 20):
+				if val >= 10 and val <= 270:
 
 					if self.profile_step == 0:  #ready to do the bump
 						if val - self.val > self.bump_interval or val - self.val < 0:  #need to test
@@ -474,6 +481,8 @@ class motor(Thread):
 					#find 90, a full stop
 					if self.profile_step == 0:
 						if abs(val) > 90:
+							print(val)
+							print("okokok")
 							self.profile_step = 1
 							for i in range(0,5):
 								self.serial_port.write("c") 
