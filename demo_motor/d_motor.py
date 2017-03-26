@@ -436,10 +436,10 @@ class motor(Thread):
 							#do the step
 							if target_step > self.custom_cur_step:
 								for x in range(self.custom_cur_step, target_step):
-									self.serial_port.write("z")
+									self.serial_port.write("m")
 							elif target_step < self.custom_cur_step:
 								for x in range(target_step, self.custom_cur_step):
-									self.serial_port.write("q")
+									self.serial_port.write("p")
 
 							self.custom_cur_step = target_step
 

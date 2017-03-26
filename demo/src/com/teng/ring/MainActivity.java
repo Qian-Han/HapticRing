@@ -88,9 +88,21 @@ public class MainActivity extends PApplet{
 	private int angle_step = 5;
 	
 	private ArrayList<MPoint> input_points;
+	private ArrayList<MPoint> smooth_points;
 	private ArrayList<NPoint> profile;
 	
-	private Server server;
+	float smoothX = 0;
+	float smoothY = 0;
+	
+	float preSmoothX = 0;
+	float preSmoothY = 0;
+	
+	float smooth_dt = 1.0f / 20.0f;
+	float smooth_RC = 0.0005f;
+	float smooth_alpha = smooth_dt / (smooth_RC + smooth_dt);
+	
+	
+	//private Server server;
 	private String activityTag = "authoring";
 	
 	public static MainActivity instance;
@@ -105,22 +117,29 @@ public class MainActivity extends PApplet{
 	
 	public void settings(){
 		print("hello\n");
-		size(1280,800);
+		//size(1280,800);
+		fullScreen();  // 1440, 900
+		
     }
 
     public void setup(){
     	background(255);
     	input_points = new ArrayList<MPoint>();
+    	smooth_points = new ArrayList<MPoint>();
     	profile = new ArrayList<NPoint>();
     	instance = this;
     	
+    	
+    	println("smooth alpha  " + smooth_alpha);
+    	
+    	/*
     	try {
 			server = new Server(activityTag);
 			println(server.getIpAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
     }
 
     public void draw(){
@@ -190,12 +209,23 @@ public class MainActivity extends PApplet{
     	}else
     	{
     		
+    		/*
     		if(input_points.size() > 0)
         	{
         		stroke(152, 44, 235, 200);
         		for(int i = 1; i < input_points.size(); i++)
         		{
         			line(input_points.get(i).getX(), input_points.get(i).getY(), input_points.get(i-1).getX(), input_points.get(i-1).getY());
+        			
+        		}
+        	}*/
+    		
+    		if(smooth_points.size() > 0)
+        	{
+        		stroke(152, 44, 235, 200);
+        		for(int i = 1; i < smooth_points.size(); i++)
+        		{
+        			line(smooth_points.get(i).getX(), smooth_points.get(i).getY(), smooth_points.get(i-1).getX(), smooth_points.get(i-1).getY());
         			
         		}
         	}
@@ -242,9 +272,10 @@ public class MainActivity extends PApplet{
     	mouseXL = 0;
     	input_points.clear();
     	
+    	
     	if (rectOver) {
     	    //clicked the button
-    		server.sendMessage(profileToString(profile));
+    		//server.sendMessage(profileToString(profile));
     	}
     }
     
@@ -294,6 +325,8 @@ public class MainActivity extends PApplet{
     		
     		*/
     		
+    		//smooth
+    		smoothSample(input_points, smooth_points);
     		
     		deSample(input_points);
     		
@@ -310,19 +343,33 @@ public class MainActivity extends PApplet{
     }
     
     
+    
     public void keyPressed() {
     	if (key == 'q') {
-    		server.onDestroy();
+    		//server.onDestroy();
     	    exit();
     	}else if(key == 'e' || key == 'x')
     	{
-    		server.sendMessage("" + key);
+    		//server.sendMessage("" + key);
     	}
     }
     
-    public void reSample(ArrayList<MPoint> list)
+    public void smoothSample(ArrayList<MPoint> list, ArrayList<MPoint> tlist)
     {
-    	//return a sample site with every 1 points
+    	tlist.clear();
+    	
+    	for(int itr = 0; itr < list.size(); itr++)
+    	{
+    		smoothX = (smooth_alpha * list.get(itr).getX()) + (1.0f - smooth_alpha) * preSmoothX;
+    		smoothY = (smooth_alpha * list.get(itr).getY()) + (1.0f - smooth_alpha) * preSmoothY;
+    		
+    		tlist.add(new MPoint(smoothX, smoothY));
+    		
+    		preSmoothX = smoothX;
+    		preSmoothY = smoothY;
+    	}
+    	
+    	println();
     	
     }
     
