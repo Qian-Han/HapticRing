@@ -95,6 +95,11 @@ public class AngryBirdActivity extends JPanel{
 	public void mouseReset()
 	{
 		//continue the game
+		robot.delay(5000);
+		
+		
+		
+		
 		robot.mouseMove(200, 310);
 		robot.delay(100);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -108,7 +113,7 @@ public class AngryBirdActivity extends JPanel{
 		robot.delay(100);
 		
 		
-		/*
+		
 		//move the game view to left
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.delay(100);
@@ -126,7 +131,7 @@ public class AngryBirdActivity extends JPanel{
 		robot.mouseMove(420, 625);
 		robot.delay(1000);
 		
-		*/
+		
 		
 		
 		robot.mouseMove(420, 625);
@@ -148,7 +153,7 @@ public class AngryBirdActivity extends JPanel{
 			//translate to up and down,  mouse is pressed
 			if(Math.abs(angle) < angleLimit)
 			{
-				yPos = baseYPos + (int)(angle * posLimit / angleLimit);
+				yPos = baseYPos - (int)(angle * posLimit / angleLimit);
 			}
 			
 			if(Math.abs(yPos - preYPos) >= 5){

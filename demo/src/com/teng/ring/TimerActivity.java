@@ -130,7 +130,7 @@ public class TimerActivity extends PApplet{
     	if (key == 'q') {
     		//server.onDestroy();
     	    exit();
-    	}else if(key == 'e' || key == 'x')
+    	}else if(key == 'e' || key == 'c')
     	{
     		server.sendMessage("" + key);
     	}else if(key == 'a')

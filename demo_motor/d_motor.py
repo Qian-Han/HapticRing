@@ -23,10 +23,10 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 		# new prototype
-		self.pthreshold_up = 950
-		self.pthreshold_down = 890
+		self.pthreshold_up = 990
+		self.pthreshold_down = 950
 
-		self.pthreshold_low = 890
+		self.pthreshold_low = 950
 
 		# old prototype
 		# self.pthreshold_up = 670
@@ -172,6 +172,12 @@ class motor(Thread):
 		self.is_ready = 0
 		self.profile_step = 0
 		print("81 - spring")
+
+	def set_angry_no_force(self):
+		self.trigger_state = 82  #to reset
+		self.is_ready = 0
+		self.profile_step = 0
+		print("82 - no force")
 
 
 	def set_profile(self, prof):
@@ -521,6 +527,17 @@ class motor(Thread):
 
 				else:
 					self.val = self.action_start - 2
+
+
+				#print("val %s, selfval %s"%(val, self.val))
+
+
+			elif self.trigger_state == 82:
+				if self.profile_step == 0:
+					self.profile_step = 1
+					for x in range(0, 2):
+						self.serial_port.write("e")  #step down
+
 
 
 
