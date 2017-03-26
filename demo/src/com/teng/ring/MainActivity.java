@@ -102,7 +102,7 @@ public class MainActivity extends PApplet{
 	float smooth_alpha = smooth_dt / (smooth_RC + smooth_dt);
 	
 	
-	//private Server server;
+	private Server server;
 	private String activityTag = "authoring";
 	
 	public static MainActivity instance;
@@ -128,18 +128,14 @@ public class MainActivity extends PApplet{
     	smooth_points = new ArrayList<MPoint>();
     	profile = new ArrayList<NPoint>();
     	instance = this;
-    	
-    	
-    	println("smooth alpha  " + smooth_alpha);
-    	
-    	/*
+    
     	try {
 			server = new Server(activityTag);
 			println(server.getIpAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
     }
 
     public void draw(){
@@ -275,7 +271,7 @@ public class MainActivity extends PApplet{
     	
     	if (rectOver) {
     	    //clicked the button
-    		//server.sendMessage(profileToString(profile));
+    		server.sendMessage(profileToString(profile));
     	}
     }
     
@@ -350,7 +346,7 @@ public class MainActivity extends PApplet{
     	    exit();
     	}else if(key == 'e' || key == 'x')
     	{
-    		//server.sendMessage("" + key);
+    		server.sendMessage("" + key);
     	}
     }
     

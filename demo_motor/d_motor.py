@@ -23,10 +23,10 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 		# new prototype
-		self.pthreshold_up = 990
-		self.pthreshold_down = 950
+		self.pthreshold_up = 950
+		self.pthreshold_down = 910
 
-		self.pthreshold_low = 950
+		self.pthreshold_low = 910
 
 		# old prototype
 		# self.pthreshold_up = 670
@@ -436,10 +436,10 @@ class motor(Thread):
 							#do the step
 							if target_step > self.custom_cur_step:
 								for x in range(self.custom_cur_step, target_step):
-									self.serial_port.write("m")
+									self.serial_port.write("z")
 							elif target_step < self.custom_cur_step:
 								for x in range(target_step, self.custom_cur_step):
-									self.serial_port.write("p")
+									self.serial_port.write("q")
 
 							self.custom_cur_step = target_step
 

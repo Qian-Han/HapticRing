@@ -369,6 +369,10 @@ def add_value_ch0(serial_port, val):
 
                         if order_itr == 8:
                             order_itr = 0
+
+                    elif demo_name == "authoring tool":
+                        running_clockwise = 1
+
                     
                     reading_direction = 0  #got direction info
                     #running_clockwise = 1  #make sure there is no direction
@@ -407,6 +411,8 @@ def add_value_ch0(serial_port, val):
                         temp_angle = 0
                         total_angle = 0
                         pre_total_angle = 0
+
+                        
 
                     m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
 
@@ -705,9 +711,9 @@ def main():
         demo_name = "locker"
 
         #test
-        #order_set = [1, 1, 1, 1, 1, 1, 1]
+        # order_set = [1, 1, 1, 1, 1, 1, 1]
         #correct
-        #order_set = [1, 1, 1, -1, -1, 1, -1]
+        # order_set = [1, 1, 1, -1, -1, 1, -1]
         #wrong
         order_set = [1, 1, -1, -1, 1, 1, -1]
         order_itr = 0
@@ -726,7 +732,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.41.64', 9090))
+    main.sock.connect(('10.31.32.253', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)
