@@ -23,10 +23,26 @@ class motor(Thread):
 		self.step_count = 0
 		self.motor_moving = 0
 		# new prototype
-		self.pthreshold_up = 950
-		self.pthreshold_down = 910
+		# self.pthreshold_up = 950
+		# self.pthreshold_down = 910
 
-		self.pthreshold_low = 910
+		# self.pthreshold_low = 910
+
+		# angrybird
+		# self.pthreshold_up = 980
+		# self.pthreshold_down = 960
+
+		# self.pthreshold_low = 960
+
+		self.pthreshold_up = 995
+		self.pthreshold_down = 950
+
+		self.pthreshold_low = 940
+
+		# self.pthreshold_up = 995
+		# self.pthreshold_down = 950
+
+		# self.pthreshold_low = 940
 
 		# old prototype
 		# self.pthreshold_up = 670

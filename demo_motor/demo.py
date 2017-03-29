@@ -412,7 +412,7 @@ def add_value_ch0(serial_port, val):
                         total_angle = 0
                         pre_total_angle = 0
 
-                        
+
 
                     m_motor.set_action_stop(total_angle)  #indicate that the user rotation action has stopped
 
@@ -732,7 +732,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.32.253', 9090))
+    main.sock.connect(('10.31.40.117', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)

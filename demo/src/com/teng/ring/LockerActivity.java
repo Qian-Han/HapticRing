@@ -16,7 +16,7 @@ public class LockerActivity extends PApplet{
 	public int rotateDirection = 1;
 	private Server server;
 	
-	public int isLock = 1;
+	public int isLock = 3;
 	public boolean showingAnswer = false;
 	public int[] password = {1, 1, 1, -1, -1, 1};
 	public int[] userAnswer;
