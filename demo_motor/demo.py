@@ -713,9 +713,9 @@ def main():
         #test
         # order_set = [1, 1, 1, 1, 1, 1, 1]
         #correct
-        # order_set = [1, 1, 1, -1, -1, 1, -1]
+        order_set = [1, 1, 1, -1, -1, 1, -1]
         #wrong
-        order_set = [1, 1, -1, -1, 1, 1, -1]
+        # order_set = [1, 1, -1, -1, 1, 1, -1]
         order_itr = 0
 
     elif args.name == 'angrybird':
@@ -732,7 +732,7 @@ def main():
 
     #need to run a while
     main.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    main.sock.connect(('10.31.40.117', 9090))
+    main.sock.connect(('10.31.39.53', 9090))
 
     #ir
     ir = threading.Thread(target=ir_read)

@@ -16,7 +16,7 @@ public class LockerActivity extends PApplet{
 	public int rotateDirection = 1;
 	private Server server;
 	
-	public int isLock = 3;
+	public int isLock = 1;
 	public boolean showingAnswer = false;
 	public int[] password = {1, 1, 1, -1, -1, 1};
 	public int[] userAnswer;
@@ -66,7 +66,7 @@ public class LockerActivity extends PApplet{
     	
     	//rotateAngle += 1f;
     	
-    	pushMatrix();
+     	pushMatrix();
     	translate(width/2, height/2 + 10);
     	rotate(rotateAngle * PI / 180 );
     	image(rotator, -17.16f, -79.56f, 34.32f, 159.12f);
@@ -100,7 +100,7 @@ public class LockerActivity extends PApplet{
     		
     	}else if(isLock == 3 && showingAnswer)
     	{
-    		text("WRONG", 520, 800);
+    		text("UNLOCK", 520, 800);
     		
     		if(millis() - time >= 2000)
     		{

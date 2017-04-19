@@ -804,10 +804,10 @@ def main():
     color_pool = ['b', 'g', 'r', 'y', 'k'] #5
     text_pool = ['BLUE', 'GREEN', 'RED', 'YELLOW', 'BLACK'] #5
    
-    show_text = p1.text(0.5, 0.3, '', color='g', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_trial = p1.text(0.8, 0.75, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
-    show_participant = p1.text(0.1, 0.75, 'participant: %s'%person, color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
-    show_block = p1.text(0.5, 0.75, 'block: %s'%block, color='b', fontsize=32, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_text = p1.text(0.5, 0.3, '', color='g', fontsize=120, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_trial = p1.text(0.8, 0.65, "trial: %s/%s"%(current_trial, total_trials), color='b', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_participant = p1.text(0.1, 0.65, 'participant: %s'%person, color='b', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
+    show_block = p1.text(0.5, 0.65, 'block: %s'%block, color='b', fontsize=60, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=False)
     if block == 1:
         show_block.set_text('block: %s  stand  normal'%block)
     elif block == 2:
@@ -817,7 +817,7 @@ def main():
     elif block == 4:
         show_block.set_text('block: %s  walk  distract'%block)
 
-    show_color_accuracy = p1.text(0.8, 0.55, '', color='b', fontsize=16, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
+    show_color_accuracy = p1.text(0.8, 0.5, '', color='b', fontsize=50, horizontalalignment='center', verticalalignment='center', transform=p1.transAxes, animated=True)
 
     im_profile_axes = plt.axes([0.0, 0.7, 1.0, 0.2], frameon=True)  # Change the numbers in this array to position your image [left, bottom, width, height])
     im_profile = plt.imread('profile.png')
